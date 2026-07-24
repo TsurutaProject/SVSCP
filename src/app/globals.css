@@ -42,6 +42,17 @@ a {
   text-decoration: none;
 }
 
+table {
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border: 1px solid currentColor;
+  padding: 0.4em 0.8em;
+  text-align: left;
+}
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;

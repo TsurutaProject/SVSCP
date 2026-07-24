@@ -17,6 +17,18 @@ export async function getTeamMemberByUserId(
   return data;
 }
 
+export async function getTeamMembers(
+  supabase: SupabaseClient<Database>,
+): Promise<TeamMember[]> {
+  const { data, error } = await supabase
+    .from("team_members")
+    .select("*")
+    .order("joined_at", { ascending: true });
+
+  if (error) throw error;
+  return data;
+}
+
 export async function joinDefaultTeam(
   supabase: SupabaseClient<Database>,
   displayName: string,
