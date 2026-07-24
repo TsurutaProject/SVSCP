@@ -1,0 +1,91 @@
+---
+exercise_id: "ch1-10-union-types"
+title: "union type / リテラル型"
+order: 10
+---
+
+## 説明
+
+「この変数は、決められたいくつかの値のうちどれかしか取らない」ということを表現したいときに使うのが**union type(合併型)**。
+
+```ts
+type Status = "pending" | "success" | "error";
+
+let status: Status = "pending"; // OK
+status = "loading"; // Error: "loading" is not assignable to type 'Status'
+```
+
+`"pending" | "success" | "error"`のように、`|`(パイプ)で複数の文字列そのものを型として並べる書き方を**リテラル型**と呼ぶ。「文字列型(`string`)なら何でもいい」んじゃなくて、「この3つの文字列のうちどれか」と、取りうる値そのものを型にするイメージ。
+
+文字列以外にも使える:
+
+```ts
+type DiceRoll = 1 | 2 | 3 | 4 | 5 | 6; // 数値のリテラル型
+```
+
+interfaceのプロパティの型としてもよく使う:
+
+```ts
+interface Task {
+  title: string;
+  priority: "low" | "medium" | "high";
+}
+```
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`types/game.ts`には、union type/リテラル型が至るところで使われてる。
+
+```ts
+export type CakeKind = 'shortcake' | 'chocolate'
+export type CustomerKind = 'おれんじ' | 'きゅーぶ' | 'ペンギン'
+export type ToppingKind = 'strawberry' | 'banana' | 'cream'
+export type ResultKind = 'idle' | 'success' | 'bonus' | 'try-again' | 'warning'
+export type InteractionMode = 'cut' | 'move'
+```
+
+これらは全部「取りうる値がこれだけ、と決め打ちできるもの」を型にしてる。例えば`CakeKind`は「ショートケーキかチョコケーキの2択」で、それ以外の文字列(`"tiramisu"`とか)を間違って代入しようとすると、その場でエラーになる。typoで存在しない種類を書いてしまうバグを、実行前に防げるのが大きなメリット。
+
+`Order`のinterface内でも、その場で直接union typeを書いてる例がある:
+
+```ts
+export interface Order {
+  // ...
+  gender: 'girl' | 'boy' | 'adult'
+  // ...
+}
+```
+
+わざわざ`type Gender = 'girl' | 'boy' | 'adult'`と別名を定義せず、プロパティの型としてその場に直接書くこともできる。「他の場所でも同じ選択肢を使い回すなら別名をつける、この場所でしか使わないならその場に直接書く」というのが使い分けの目安。
+
+## コラム:Java・Rubyとの対応
+
+### Java(enum)
+
+```java
+enum Status {
+    PENDING, SUCCESS, ERROR
+}
+
+Status status = Status.PENDING;
+```
+
+Javaで「決まった選択肢」を表現するには**enum**を使うのが定番。TypeScriptにも実は`enum`という似た機能があるけど(これは1章補講で扱う)、union type(文字列リテラルの組み合わせ)の方がより軽量でシンプル、という理由でTypeScriptの実務ではunion typeの方が好まれる傾向がある。
+
+### Ruby
+
+```ruby
+# Rubyには決まった選択肢を型として強制する仕組みがない
+status = "pending" # ただの文字列、他の値も自由に代入できてしまう
+```
+
+Rubyではシンボル(`:pending`など)を使って選択肢っぽく書くことはよくあるけど、「この3つ以外は許さない」という強制力はコード上にはない(実行時のif文などでチェックするしかない)。TypeScriptのunion typeは、Rubyだと「コメントやチーム内の暗黙の了解」で済ませていたルールを、コンパイラに守らせる仕組み、と捉えると分かりやすい。
+
+## 演習
+
+`WeatherType`というunion type(`"sunny" | "cloudy" | "rainy"`)を定義してください。その後、`WeatherType`を引数に取り、天気に応じたメッセージ(例:`"sunny"`なら`"晴れです、傘は不要です"`)を返す関数を書いてください。
+
+### クリア条件
+
+- `WeatherType`が3つの文字列リテラルのunion typeとして定義されていること
+- 3種類すべてに対応するメッセージを返す関数が書かれていること

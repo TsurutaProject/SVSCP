@@ -1,0 +1,101 @@
+---
+exercise_id: "ch1-09-interface"
+title: "interface / オブジェクトの型"
+order: 9
+---
+
+## 説明
+
+オブジェクトの「形」を型として定義したいときに使うのが**interface**。
+
+```ts
+interface User {
+  name: string;
+  age: number;
+  isActive: boolean;
+}
+
+const user: User = {
+  name: "のりまき",
+  age: 20,
+  isActive: true,
+};
+```
+
+`interface`で定義した型は、`: User`のように変数の型注釈として使える。プロパティが足りなかったり、型が違ったりすると、TypeScriptがすぐエラーで教えてくれる。
+
+interfaceは、同じ形のオブジェクトが何度も出てくるときに真価を発揮する。関数の引数として使うのも定番:
+
+```ts
+function printUser(user: User): void {
+  console.log(`${user.name}(${user.age}歳)`);
+}
+```
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`types/game.ts`から、トッピングの型:
+
+```ts
+export interface Topping {
+  id: string
+  kind: ToppingKind
+  label: string
+  angle: number
+  radius: number
+}
+```
+
+「トッピング1つ」が、`id`(識別子)、`kind`(種類)、`label`(表示名)、`angle`(角度)、`radius`(半径)という5つのプロパティを持つことを表してる。ケーキの上に配置される個々のトッピング(いちごとか、バナナとか)は、全部この形に沿ったオブジェクトとして扱われる。
+
+もう少し複雑な例だと、`Order`(注文)の型もある:
+
+```ts
+export interface Order {
+  id: string
+  customerName: CustomerKind
+  age: number
+  gender: 'girl' | 'boy' | 'adult'
+  cakeKind: CakeKind
+  target: Fraction
+  message: string
+  difficulty: number
+  recipePieces?: Fraction[]
+}
+```
+
+ここでは、`gender`のようにその場で直接`'girl' | 'boy' | 'adult'`という選択肢を書いたり(次のレッスンで扱うunion type)、`target: Fraction`のように別のinterfaceを、プロパティの型として使い回したり(interfaceは組み合わせて使える)してる。`recipePieces?`の`?`は「あってもなくてもいい」という意味で、これは1-11で扱う。
+
+## コラム:Java・Rubyとの対応
+
+### Java
+
+```java
+class User {
+    String name;
+    int age;
+    boolean isActive;
+}
+// もしくは Java 16以降ならRecord
+record User(String name, int age, boolean isActive) {}
+```
+
+Javaで「オブジェクトの形」を定義するには、クラス(またはRecord)を作る必要がある。TypeScriptのinterfaceとの決定的な違いは、interfaceは「形」を定義するだけで、実体(インスタンス)を作る機能は持たないこと。Javaのクラスは「形の定義」と「実体を作る仕組み(コンストラクタなど)」がセットになってるけど、TypeScriptでは「形はinterfaceで決めて、実際のオブジェクトは`{}`でそのまま作る」という役割分担になってる。
+
+### Ruby
+
+```ruby
+# Rubyには型定義そのものがないので、そのままハッシュとして扱う
+user = { name: "のりまき", age: 20, is_active: true }
+```
+
+Rubyには「この形のオブジェクトしか受け付けない」という強制力がない。ハッシュはどんなキーでも自由に持てる。TypeScriptのinterfaceは、Rubyでいう「このハッシュは絶対にこの形をしてるはず」という、書き手の頭の中の暗黙の前提を、コード上に明示して、コンパイラにチェックさせるもの、とイメージすると分かりやすいかも。
+
+## 演習
+
+`Station`というinterfaceを定義してください。`name`(文字列)、`line`(文字列、路線名)、`isTerminal`(真偽値、終着駅かどうか)の3つのプロパティを持つ形にしてください。その後、そのinterfaceに沿った`Station`オブジェクトを1つ作成してください。
+
+### クリア条件
+
+- `Station`interfaceが`name: string`, `line: string`, `isTerminal: boolean`の3プロパティを持つこと
+- そのinterfaceに沿ったオブジェクトが1つ作成されていること

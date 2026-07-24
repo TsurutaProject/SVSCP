@@ -1,0 +1,105 @@
+---
+exercise_id: "ch1-15-capstone"
+title: "総合演習:電車の運行管理 & ケーキの注文管理"
+order: 15
+---
+
+## この演習について
+
+1章で学んだ知識を、ここまで別々に扱ってきたJS前提知識(6項目)とTypeScript基礎(8項目)を組み合わせて使う、総仕上げの演習。
+
+**Part A**はTrain_Proto-Typeの世界観(電車の運行管理)を題材に、JS前提知識だけで完結する形。**Part B**はCake-Gameの世界観(ケーキの注文管理)を題材に、TypeScriptの型を使う形。どちらも、1つでも文法が抜けていると手が止まるように設計してあるので、1章を通して読んでいれば解けるはず。
+
+---
+
+## Part A:電車の運行管理ミニ関数群(JS)
+
+以下のようなデータがあるとする(この形のまま使ってOK):
+
+```js
+const trains = [
+  { name: "のぞみ1号", speed: 300, delayMinutes: 0 },
+  { name: "ひかり5号", speed: 250, delayMinutes: 3 },
+  { name: "こだま2号", speed: 130, delayMinutes: 0 },
+  { name: "はやぶさ7号", speed: 320, delayMinutes: 8 },
+];
+```
+
+以下5つの関数を作成してください。
+
+### 1. `getDelayedTrains(trains)`
+
+遅延してる(`delayMinutes`が0より大きい)電車だけを抽出した配列を返す。`.filter()`を使うこと。
+
+### 2. `formatDelayReport(train)`
+
+1つの電車オブジェクトを受け取り、以下の形式の文字列を返す:
+- 遅延してる場合:`「のぞみ1号:3分遅延」`
+- 遅延してない場合:`「のぞみ1号:定刻」`
+
+分割代入・テンプレートリテラル・三項演算子を組み合わせて書くこと。
+
+### 3. `updateDelay(train, newDelay)`
+
+電車オブジェクトと新しい遅延分数を受け取り、`delayMinutes`だけを更新した**新しいオブジェクト**を返す(元の`train`オブジェクトは変更しないこと)。スプレッド構文を使うこと。
+
+### 4. `getDelaySummary(trains)`
+
+電車の配列を受け取り、**遅延してる電車だけ**について`formatDelayReport`と同じ形式の文字列の配列を返す。`.filter()`と`.map()`を組み合わせて書くこと。
+
+### 5. `getFirstTrainName(trains)`
+
+電車の配列を受け取り、先頭の電車の名前を返す。ただし`trains`が`undefined`や空配列の場合でもエラーにならず、`"該当なし"`を返すようにすること。オプショナルチェイニング(`?.`)とNull合体演算子(`??`)を使うこと。
+
+### クリア条件(Part A)
+
+- 5つの関数すべてが実装されていること
+- `getDelayedTrains(trains)`が`ひかり5号`と`はやぶさ7号`の2件を返すこと
+- `updateDelay`が元の`trains`配列・オブジェクトを変更していないこと(実行後も元データが無事であること)
+- `getFirstTrainName(undefined)`や`getFirstTrainName([])`がエラーにならず`"該当なし"`を返すこと
+
+---
+
+## Part B:ケーキの注文管理(TypeScript)
+
+以下の条件を満たす、ケーキ注文管理用の型と関数を作成してください。
+
+### 1. `Order`型を定義する
+
+以下のプロパティを持つinterfaceにすること:
+- `customerName`(文字列、注文者名)
+- `cakeKind`(union type:`"shortcake" | "chocolate"`)
+- `toppings`(文字列の配列、オプション。トッピングは0〜複数、指定されないこともある)
+- `isCompleted`(真偽値、完了状態)
+
+### 2. `completeOrder(order: Order): Order`
+
+注文を受け取り、`isCompleted`を`true`にした**新しいオブジェクト**を返す(元のオブジェクトは変更しないこと)。スプレッド構文を使うこと。
+
+### 3. `getPendingOrders(orders: Order[]): Order[]`
+
+注文の配列を受け取り、`isCompleted`が`false`の注文だけを抽出した配列を返す。
+
+### 4. `formatOrderSummary(order: Order): string`
+
+注文を受け取り、以下の形式の文字列を返す:
+- トッピングありの場合:`「のりまきさん:ショートケーキ(トッピング:いちご、生クリーム)」`
+- トッピングなしの場合:`「のりまきさん:ショートケーキ」`
+
+`cakeKind`が`"shortcake"`なら`"ショートケーキ"`、`"chocolate"`なら`"チョコケーキ"`と表示すること(union typeの値に応じた分岐が必要)。
+
+### 5. `ToppingStock`型を定義する
+
+トッピングの種類(`"strawberry" | "cream" | "banana"`という新しいunion typeを作ること)ごとの在庫数(`number`)を表す型を、`Record`を使って定義すること。
+
+### クリア条件(Part B)
+
+- `Order`interfaceが正しい4プロパティ(うち`toppings`はoptional)で定義されていること
+- `completeOrder`が元のオブジェクトを変更せず、新しいオブジェクトを返していること
+- `getPendingOrders`が`.filter()`を使って正しく絞り込んでいること
+- `formatOrderSummary`が、トッピングの有無・ケーキの種類によって正しく文字列を出し分けていること
+- `ToppingStock`が`Record<"strawberry" | "cream" | "banana", number>`の形で定義されていること
+
+---
+
+Part A・Part Bの両方をクリアできたら、1章は完了。次は2章(React基礎)に進める。

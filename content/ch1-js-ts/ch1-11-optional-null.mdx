@@ -1,0 +1,94 @@
+---
+exercise_id: "ch1-11-optional-null"
+title: "optional property / null許容"
+order: 11
+---
+
+## 説明
+
+interfaceのプロパティの中には、「あってもなくてもいい」ものがある。そういうときはプロパティ名の後ろに`?`をつける。
+
+```ts
+interface Task {
+  title: string;
+  dueDate?: string; // あってもなくてもいい
+}
+
+const task1: Task = { title: "レポート提出" }; // dueDateなしでもOK
+const task2: Task = { title: "会議", dueDate: "2026-08-01" }; // ありでもOK
+```
+
+`dueDate?: string`は、実際には`string | undefined`(文字列か、値が存在しないか)という意味になる。`?`をつけ忘れると「必ず値が必要」という意味になってしまうので、「本当に必須かどうか」を意識して使い分けるのが大事。
+
+似たような場面で、「値はあるけど、意図的にnullが入りうる」ことを表したいときは、union typeで`| null`を明示する:
+
+```ts
+interface Task {
+  assignedTo: string | null; // 担当者は決まってるか、まだ未定(null)かのどちらか
+}
+```
+
+`?`(そもそもプロパティが存在しないかも)と`| null`(プロパティは存在するけど中身が空かも)は、似ているようで意味が違う点に注意。
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`Order`interfaceに、まさに`?`の実例がある:
+
+```ts
+export interface Order {
+  // ...
+  recipePieces?: Fraction[]
+}
+```
+
+これは「注文に、特定のレシピ(分数の組み合わせ)の指定があるかもしれないし、ないかもしれない」ということを表してる。
+
+もう一つ、`ResultState`interfaceにはさらに複数の`?`がまとまって出てくる:
+
+```ts
+export interface ResultState {
+  kind: ResultKind
+  title: string
+  detail: string
+  primaryLabel?: string
+  secondaryLabel?: string
+  combo?: number
+  earnedMoney?: number
+  highlights?: string[]
+}
+```
+
+これは「結果表示」を表す型で、`kind`/`title`/`detail`は必ず必要だけど、それ以外(ボタンのラベル、コンボ数、獲得金額、ハイライト表示)は結果の種類(成功なのか失敗なのかなど)によって、あったりなかったりするという設計。「絶対必要な情報」と「場合による情報」を型の時点で分けて表現できてる。
+
+## コラム:Java・Rubyとの対応
+
+### Java
+
+```java
+class Task {
+    String title;
+    String dueDate; // nullが入りうる、という前提でコード全体を書く必要がある
+}
+// Java 8以降ならOptionalで意図を明示できる
+Optional<String> dueDate;
+```
+
+Javaには`?`のような「プロパティが存在しない」という概念自体がなく、基本的にすべてのフィールドは「nullが入るかもしれない」という前提で扱われる(nullチェックを怠るとNullPointerExceptionの温床になる、というのはJavaでよく聞く話のはず)。`Optional`型を使えば「値がないかもしれない」ことを型で明示できるけど、TypeScriptの`?`の方がずっと軽量に書ける。
+
+### Ruby
+
+```ruby
+task = { title: "レポート提出" } # dueDateキー自体が存在しない
+task[:due_date] # nilが返る(エラーにはならない)
+```
+
+Rubyのハッシュは、そもそも存在しないキーにアクセスしても`nil`が返るだけでエラーにならない。この「あってもなくても動く」柔軟さは、TypeScriptの`?`に近い体験ではあるけど、Rubyは「本当は必須のはずのキーを書き忘れてても、実行するまで気づけない」のに対し、TypeScriptは「必須のキーを書き忘れたら、その場でエラーになる」という違いがある。ここがまさに動的型付けと静的型付けの体験の差。
+
+## 演習
+
+`Reservation`というinterfaceを定義してください。`name`(文字列、必須)、`seats`(数値、必須)、`note`(文字列、オプション、`?`を使う)の3つのプロパティを持つ形にしてください。その後、`note`ありのオブジェクトと、`note`なしのオブジェクトを、それぞれ1つずつ作成してください。
+
+### クリア条件
+
+- `note`だけが`?`つきでoptionalになっていること
+- `note`ありのオブジェクトと、なしのオブジェクトの両方が作成されていること

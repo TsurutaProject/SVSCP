@@ -1,0 +1,114 @@
+---
+exercise_id: "ch1-12-nested-types"
+title: "配列・オブジェクトの型を組み合わせる"
+order: 12
+---
+
+## 説明
+
+ここまでのレッスンで、「基本の型」「interface」「union type」「optional」を扱ってきたけど、実際のアプリでは、これらを組み合わせたネストした型がよく出てくる。
+
+配列の型は、`型名[]`という書き方で表す:
+
+```ts
+let scores: number[] = [80, 90, 100];
+let names: string[] = ["のりまき", "しばまき"];
+```
+
+interfaceのオブジェクトを要素とする配列も同じように書ける:
+
+```ts
+interface Task {
+  title: string;
+  done: boolean;
+}
+
+const tasks: Task[] = [
+  { title: "レポート提出", done: false },
+  { title: "会議準備", done: true },
+];
+```
+
+さらに、interfaceのプロパティ自体が、別のinterfaceや配列になっていることもよくある(ネスト構造):
+
+```ts
+interface Project {
+  name: string;
+  tasks: Task[]; // Task型の配列を、プロパティとして持つ
+}
+```
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`CakeDefinition`interfaceに、まさにこのネスト構造がある:
+
+```ts
+export interface CakeDefinition {
+  id: CakeKind
+  name: string
+  price: number
+  description: string
+  imageUrl: string
+  baseColor: string
+  crustColor: string
+  centerColor: string
+  guideColor: string
+  palette: string[]
+  toppings: Topping[]
+}
+```
+
+`palette: string[]`は「配色に使う色コードの配列」、`toppings: Topping[]`は「このケーキに使えるトッピングの配列」。特に`toppings: Topping[]`は、前のレッスンで定義した`Topping`interface(id, kind, label, angle, radiusを持つ)を、そのまま配列の要素の型として再利用してる。一度定義したinterfaceは、他のinterfaceの中でどんどん使い回せる、というのがTypeScriptの型設計の基本的な考え方。
+
+`Stage`interfaceにも、シンプルな配列のネストがある:
+
+```ts
+export interface Stage {
+  id: string
+  title: string
+  description: string
+  allowedCuts: number[]
+  orderIds: string[]
+}
+```
+
+`allowedCuts: number[]`は「そのステージで許可されてる分割数のリスト」(例:`[2, 4, 8]`のように、2等分・4等分・8等分だけ許可、など)、`orderIds: string[]`は「そのステージに含まれる注文のidリスト」。配列の中身は、実際のオブジェクトそのものじゃなくて、他のオブジェクトを指す"id"だけを持たせる設計にもなっていて、これはデータベース設計(Supabaseのテーブル同士の関連付け)とも通じる考え方。
+
+## コラム:Java・Rubyとの対応
+
+### Java
+
+```java
+class Task {
+    String title;
+    boolean done;
+}
+
+class Project {
+    String name;
+    List<Task> tasks; // Task型のリストを持つ
+}
+```
+
+考え方は完全に同じ。Javaでは配列よりも`List<T>`(ジェネリクスを使ったコレクション)の方がよく使われる。TypeScriptの`Task[]`は、Javaでいう`List<Task>`や`Task[]`にあたる。
+
+### Ruby
+
+```ruby
+tasks = [
+  { title: "レポート提出", done: false },
+  { title: "会議準備", done: true },
+]
+```
+
+Rubyの配列・ハッシュの組み合わせで、見た目上は近いものが作れる。ただしRubyには「この配列の中身は必ずこの形のハッシュだけ」という強制力がない。TypeScriptの`Task[]`は、「配列の中に、うっかり違う形のオブジェクトを紛れ込ませてしまう」というバグを防いでくれる点が、Rubyとの体験の大きな違い。
+
+## 演習
+
+`Player`というinterfaceを定義してください(`name`: 文字列、`items`: 文字列の配列)。その後、`Team`というinterfaceを定義してください(`teamName`: 文字列、`members`: `Player`型の配列)。最後に、2人のPlayerを含む`Team`オブジェクトを1つ作成してください。
+
+### クリア条件
+
+- `Player`と`Team`、両方のinterfaceが正しく定義されていること
+- `Team`の`members`が`Player[]`型になっていること
+- 2人のPlayerを含む`Team`オブジェクトが作成されていること

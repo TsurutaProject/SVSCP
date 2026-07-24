@@ -1,0 +1,76 @@
+---
+exercise_id: "ch1-07-basic-types"
+title: "基本の型注釈"
+order: 7
+---
+
+## 説明
+
+JavaScriptには型の概念がない(変数に何でも代入できる)けど、TypeScriptでは変数・関数の引数・戻り値に「これはこの型の値ですよ」と明示できる。これを**型注釈(type annotation)**と呼ぶ。
+
+```ts
+let age: number = 20;
+let name: string = "のりまき";
+let isActive: boolean = true;
+let scores: number[] = [80, 90, 100]; // 数値の配列
+```
+
+型が違う値を代入しようとすると、実行前(コンパイル時)にエラーとして教えてくれる:
+
+```ts
+let age: number = 20;
+age = "twenty"; // Error: Type 'string' is not assignable to type 'number'
+```
+
+これが、JavaScriptだと実行してみるまで気づけないバグを、書いてる最中に検出できるというTypeScriptの一番の価値。
+
+ちなみに、`let age: number = 20;`のように代入する値から型が明らかな場合、実は型注釈を省略してもTypeScriptが自動で推論してくれる(これを型推論と呼ぶ):
+
+```ts
+let age = 20; // これでも自動的にnumber型として扱われる
+```
+
+なので実務では、「推論できるところは書かない、推論できない(関数の引数など)ところは書く」というのが基本スタイルになる。
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`types/game.ts`から、一番シンプルな型定義:
+
+```ts
+export interface Fraction {
+  numerator: number
+  denominator: number
+}
+```
+
+これは「分数」を表す型。`numerator`(分子)と`denominator`(分母)、どちらも`number`型で注釈されてる。ケーキを何等分するかを扱うこのゲームでは、この`Fraction`型があちこちで使われてる。
+
+## コラム:Java・Rubyとの対応
+
+### Java
+
+```java
+int age = 20;
+String name = "のりまき";
+boolean isActive = true;
+```
+
+Javaはそもそも静的型付け言語なので、「型を書く」という感覚自体はもう馴染みがあるはず。書き方の違いは「型を変数名の前に書く(`int age`)」か「変数名の後に書く(`age: number`)」かくらい。TypeScriptは後者(後置型注釈と呼ばれるスタイル)。
+
+### Ruby
+
+```ruby
+age = 20
+name = "のりまき"
+```
+
+Rubyは動的型付け言語で、そもそも型を書かない(型はあるけど、実行時に自動で決まる)。もしRubyの感覚で「型なんて書かなくていいのでは」と思うなら、それはむしろ自然な反応。TypeScriptは「JSの自由さ」と「Javaのような型安全性」の中間を取ってる言語、というイメージを持つと位置づけが分かりやすいかも。
+
+## 演習
+
+`price`(数値)、`itemName`(文字列)、`inStock`(真偽値)の3つの変数を、それぞれ適切な型注釈をつけて宣言してください。その後、`itemName`に誤って数値を代入しようとするとエラーになることを確認してください(コメントアウトした状態でコードに残してもOK)。
+
+### クリア条件
+
+- `price: number`, `itemName: string`, `inStock: boolean`の3つが正しく宣言されていること
+- 誤った型を代入するとエラーになることを、コメントで示せていること

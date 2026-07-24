@@ -1,0 +1,70 @@
+---
+exercise_id: "ch1-13-generics-reading"
+title: "ジェネリクスの読み方(useState<T>)"
+order: 13
+---
+
+## 説明
+
+ジェネリクスというと難しく聞こえるけど、まずは「型を後から差し込める、型の空欄」くらいのイメージで捉えると入りやすい。
+
+`<>`(山括弧)の中に型を書くと、「その関数やクラスが、その型で動くようにする」という意味になる。
+
+```ts
+function identity<T>(value: T): T {
+  return value;
+}
+
+identity<string>("hello"); // T が string になる
+identity<number>(123); // T が number になる
+```
+
+`T`という文字自体には特別な意味はなくて(慣習的にType の頭文字でTがよく使われる)、「呼び出すたびに変わる、型のプレースホルダー」だと思えばいい。
+
+このレッスンでは、自分でジェネリック関数を定義する練習はしない(それは1章補講で扱う)。まずは、すでに用意されてるジェネリックな関数を、正しく"使う"側として読めるようになることが目標。
+
+## 実際のプロトタイプでの例
+
+Reactの`useState`は、まさにジェネリクスを使った関数。Cake-Gameの`App.tsx`には、こういう書き方が大量に出てくる:
+
+```tsx
+const [activeCakeId, setActiveCakeId] = useState<CakeKind>('shortcake')
+const [unlockedCakeIds, setUnlockedCakeIds] = useState<CakeKind[]>(['shortcake'])
+const [cutMarkAngles, setCutMarkAngles] = useState<number[]>([])
+const [carriedPiece, setCarriedPiece] = useState<CarriedPieceState | null>(null)
+```
+
+`useState<CakeKind>('shortcake')`の`<CakeKind>`部分がジェネリクス。これは「この状態(state)は`CakeKind`型の値しか入らないよ」と、`useState`に対して伝えてる。こうすることで、後から`setActiveCakeId("something-wrong")`のように、`CakeKind`(ショートケーキかチョコケーキ)以外の値をセットしようとすると、TypeScriptがエラーで教えてくれる。
+
+`useState<CarriedPieceState | null>(null)`のように、前のレッスンで扱ったunion type(`| null`)と組み合わせるのもよくあるパターン。「今は`null`(何も持ってない)だけど、将来的には`CarriedPieceState`型の値が入りうる」という意味になる。
+
+面白いのは、`useState<CakeKind>('shortcake')`のように初期値から型が明らかな場合、実は`<CakeKind>`を省略しても自動推論されることが多い。それでもあえて明示的に書いてるのは、「後で別の型の値をセットしてしまうミスを防ぎたい」という意図が強いとき、といったコーディングスタイルの表れ。
+
+## コラム:Java・Rubyとの対応
+
+### Java(ジェネリクス、`List<String>`とか)
+
+```java
+List<String> names = new ArrayList<>();
+Map<String, Integer> scores = new HashMap<>();
+```
+
+Javaも`<>`を使うジェネリクスを持っていて、発想はTypeScriptとほぼ同じ。`List<String>`(文字列だけを扱うリスト)のように、「この入れ物には、この型の値しか入れさせない」という制約をつける仕組み。授業で`<T>`を使った経験があるなら、`useState<T>`もすぐ同じ発想だと気づけるはず。
+
+### Ruby
+
+Rubyには型を明示するジェネリクスという概念自体がない(動的型付けだから、配列にもハッシュにも何でも入れられる)。ここはJava経験の方が直接活きるポイント。
+
+## 演習
+
+以下のコードの`<>`の中に何が入るべきか、当ててみてください(実際に動かす必要はなく、考えて答えを出すだけでOK)。
+
+```tsx
+// 「選択中のトッピングの種類(ToppingKindという型がある)、まだ何も選んでなければnull」を管理したい
+const [selectedTopping, setSelectedTopping] = useState<???>(null);
+```
+
+### クリア条件
+
+- `<ToppingKind | null>`という答えにたどり着けていること
+- なぜunion typeが必要か(nullも入りうるから)を説明できること

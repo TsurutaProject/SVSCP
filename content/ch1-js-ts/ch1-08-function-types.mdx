@@ -1,0 +1,89 @@
+---
+exercise_id: "ch1-08-function-types"
+title: "関数の型"
+order: 8
+---
+
+## 説明
+
+関数にも、引数それぞれの型と戻り値の型を注釈できる。
+
+```ts
+function add(a: number, b: number): number {
+  return a + b;
+}
+
+// アロー関数でも同じ
+const add = (a: number, b: number): number => a + b;
+```
+
+`(a: number, b: number)`が「引数の型」、最後の`: number`が「戻り値の型」。
+
+引数にはデフォルト値も指定できて、TypeScriptはそこから型を自動推論してくれるので、型注釈を省略することも多い:
+
+```ts
+const greet = (name: string, honorific = "さん"): string => `${name}${honorific}`;
+// honorificはデフォルト値が文字列なので、自動的にstring型と推論される
+```
+
+戻り値が何も返さない(処理だけする)関数は、`void`型を使う:
+
+```ts
+const logMessage = (message: string): void => {
+  console.log(message);
+};
+```
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`utils/cakeGeometry.ts`から:
+
+```ts
+export const getCutToppingIds = (
+  denominator: number,
+  toppings: Topping[],
+  hitTolerance = 7,
+): string[] => {
+  // ...
+}
+```
+
+これは「ケーキの分割数(`denominator`)、トッピングの配列(`toppings`)、判定の許容範囲(`hitTolerance`、デフォルトは`7`)を受け取って、切られたトッピングのidの配列(`string[]`)を返す」関数。
+
+ここで注目してほしいのが`hitTolerance = 7`の部分。型注釈が書かれてないけど、デフォルト値が`7`(数値)だから、TypeScriptが自動的に`number`型だと推論してくれてる。前のレッスンで話した「推論できるところは書かない」の実例がまさにここ。
+
+## コラム:Java・Rubyとの対応
+
+### Java
+
+```java
+public int add(int a, int b) {
+    return a + b;
+}
+```
+
+Javaも当然、引数と戻り値それぞれに型を書く。書き方の違いは、TypeScriptが「戻り値の型を最後に書く」のに対して、Javaは「戻り値の型をメソッド名の前に書く」点。あとJavaにはデフォルト引数という機能自体がなくて(オーバーロードで代用するのが一般的)、この点はTypeScript/JSの方が柔軟。
+
+### Ruby
+
+```ruby
+def add(a, b)
+  a + b
+end
+
+def greet(name, honorific = "さん")
+  "#{name}#{honorific}"
+end
+```
+
+Rubyは型注釈なし(型は書かない)だけど、デフォルト引数の書き方(`honorific = "さん"`)はTypeScriptとほぼ同じ形。ここは馴染みやすいはず。
+
+## 演習
+
+`calculateTotal(price: number, quantity: number, taxRate = 0.1): number`という形の関数を作ってください。`price × quantity`に、税率(`taxRate`、デフォルトは0.1)をかけた金額を四捨五入して返す関数にしてください。
+
+### クリア条件
+
+- 引数と戻り値に正しい型注釈(または適切な型推論)がついていること
+- `taxRate`にデフォルト値が設定されていること
+- `calculateTotal(100, 2)`が`220`を返すこと(100×2×1.1=220)

@@ -1,0 +1,92 @@
+---
+exercise_id: "ch1-14-utility-types"
+title: "ユーティリティ型入門(Record, Partial, Exclude)"
+order: 14
+---
+
+## 説明
+
+TypeScriptには、既存の型を加工して新しい型を作る「ユーティリティ型」が標準で用意されてる。よく使う3つを紹介する。
+
+**`Record<K, V>`** — 「キーの型が`K`、値の型が`V`のオブジェクト」を作る。
+
+```ts
+type Fruit = "apple" | "banana" | "orange";
+const prices: Record<Fruit, number> = {
+  apple: 100,
+  banana: 80,
+  orange: 120,
+};
+```
+
+これは「`Fruit`型の値(3種類のどれか)をキーとして、それぞれに`number`の値を対応させたオブジェクト」を表す。キーが全部揃ってないとエラーになる(例えば`banana`を書き忘れるとエラー)ので、「union typeの選択肢すべてに、必ず対応する値がある」ことを型で保証できる。
+
+**`Partial<T>`** — 「`T`型のプロパティを、全部optional(`?`つき)にする」。
+
+```ts
+interface Task {
+  title: string;
+  done: boolean;
+}
+
+const draft: Partial<Task> = { title: "下書き中" }; // doneがなくてもOK
+```
+
+**`Exclude<T, U>`** — 「union type `T`から、`U`に該当する選択肢を取り除く」。
+
+```ts
+type Status = "pending" | "success" | "error";
+type NonPending = Exclude<Status, "pending">; // "success" | "error"
+```
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`types/game.ts`に、`Record`のシンプルな例:
+
+```ts
+export type TrophyProgress = Record<TrophyMetric, number>
+```
+
+`TrophyMetric`はunion type(`'servedCount' | 'bestCombo' | ...`など13種類の実績指標)。`TrophyProgress`は「その13種類すべてについて、現在の達成数(`number`)を持つオブジェクト」を表す。実績1つでも記録し忘れることがない、という保証をこの1行で表現してる。
+
+`components/GuidedTutorial.tsx`には、3つを組み合わせた、より高度な例がある:
+
+```ts
+const stepContent: Record<Exclude<GuidedTutorialStep, 'intro'>, { title: string; text: string }> = {
+  // ...
+}
+
+const focusSelectors: Partial<Record<GuidedTutorialStep, string>> = {
+  // ...
+}
+```
+
+1つ目は「`GuidedTutorialStep`という選択肢から`'intro'`だけ除いた上で、それぞれに`{ title, text }`という形のオブジェクトを対応させる」型。「イントロ画面だけは、この説明文の仕組みの対象外」ということを型レベルで表現してる。
+
+2つ目は「`GuidedTutorialStep`のすべての選択肢について、対応する文字列があるかもしれないし、ないかもしれない(`Partial`)」という型。`Record`だけだと「全部のキーが必須」になるところを、`Partial`と組み合わせることで「一部のステップだけ設定すればいい」という柔軟な形にしてる。ユーティリティ型は、こうやって重ねて組み合わせて使うことも多い。
+
+## コラム:Java・Rubyとの対応
+
+### Java
+
+```java
+Map<Fruit, Integer> prices = new HashMap<>();
+prices.put(Fruit.APPLE, 100);
+```
+
+`Record<K, V>`に近いのは`Map<K, V>`。ただしJavaの`Map`は「キーが全部揃ってるか」をコンパイル時にチェックしてくれない(実行時に`.get()`した結果が`null`かもしれない、という前提で書く)。TypeScriptの`Record`は、「全キー必須」をコンパイル時に保証できる点がJavaの`Map`より厳格。
+
+`Partial`や`Exclude`のような、型そのものを加工する機能はJavaにはあまりない(ジェネリクスはあるけど、型を型として操作する発想は薄い)。ここはTypeScript特有の強力な機能、という理解でいい。
+
+### Ruby
+
+Rubyのハッシュは動的なので、`Record`のような「キーが全部揃ってることの保証」という概念自体がない。これもTypeScript(というより静的型付け言語全般)特有の恩恵として捉えるのがいい。
+
+## 演習
+
+`CakeKind`(`'shortcake' | 'chocolate'`)という型があるとして、`Record`を使って、それぞれのケーキの在庫数(`number`)を持つ`stock`というオブジェクトを定義してください。その後、`Partial<Record<...>>`を使って、「一部のケーキだけ割引率(`number`)が設定されている」`discounts`というオブジェクトも定義してください。
+
+### クリア条件
+
+- `stock`が`Record<CakeKind, number>`型で、両方のケーキ種類分のキーが揃っていること
+- `discounts`が`Partial<Record<CakeKind, number>>`型で、一部のキーだけでもエラーにならないこと
