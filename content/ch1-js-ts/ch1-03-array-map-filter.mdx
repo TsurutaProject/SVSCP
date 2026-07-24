@@ -1,0 +1,85 @@
+---
+exercise_id: "ch1-03-array-map-filter"
+title: ".map() / .filter()"
+order: 3
+---
+
+## 説明
+
+配列に対してよく使う2つのメソッド。
+
+**`.map()`** — 配列の各要素を変換して、新しい配列を作る。元の配列は変更されない。
+
+```js
+const numbers = [1, 2, 3];
+const doubled = numbers.map((n) => n * 2);
+// doubled = [2, 4, 6]
+```
+
+**`.filter()`** — 配列の中から、条件に合う要素だけを残した新しい配列を作る。
+
+```js
+const numbers = [1, 2, 3, 4, 5];
+const evens = numbers.filter((n) => n % 2 === 0);
+// evens = [2, 4]
+```
+
+どちらも、`for`ループを自分で書く代わりに使える。「元の配列は変更せず、新しい配列を返す」という点が共通していて重要(Reactの状態管理と相性がいい理由でもある)。
+
+## 実際のプロトタイプでの例
+
+Train_Proto-Typeの`App.jsx`に、`.filter()`を使ったシンプルな例がある:
+
+```js
+const fastRailCount = placedRails.filter((item) => item.type === 'fast').length
+```
+
+これは「配置済みのレール(`placedRails`)の中から、`type`が`'fast'`(高速レール)のものだけを残して、その個数を数える」処理。`.filter()`で絞り込んだ配列に対して、そのまま`.length`をつなげることで「条件に合う要素が何個あるか」を1行で求められる、よくある組み合わせ。
+
+同じファイルには`.map()`と`.filter()`をチェーン(連続してつなげる)する例もある:
+
+```js
+[getRelayCellAt(from), getRelayCellAt(to)]
+  .filter(Boolean)
+  .map((neighbor) => getDirectionBetween(position, neighbor))
+  .filter(Boolean)
+```
+
+`.filter(Boolean)`は「`null`や`undefined`など、値が存在しないものを取り除く」という頻出パターン(`Boolean`を条件関数として渡すと、「値がtrueっぽいものだけ残す」という意味になる)。「絞り込む→変換する→また絞り込む」と、メソッドを`.`でどんどん繋げていけるのが`.map()`/`.filter()`の強み。
+
+## コラム:Java・Rubyとの対応
+
+### Java(Stream API)
+
+```java
+List<Integer> doubled = numbers.stream()
+    .map(n -> n * 2)
+    .collect(Collectors.toList());
+
+List<Integer> evens = numbers.stream()
+    .filter(n -> n % 2 == 0)
+    .collect(Collectors.toList());
+```
+
+考え方はほぼ同じ(`map`/`filter`という名前まで一致)。ただJavaは`.stream()`で「ストリームに変換」してから処理し、最後に`.collect()`で配列/リストに戻す必要がある。JS/TSは配列に対して直接`.map()`/`.filter()`が呼べるので、その分ワンステップ少ない。
+
+### Ruby
+
+```ruby
+doubled = numbers.map { |n| n * 2 }
+evens = numbers.filter { |n| n.even? }
+# select も filter と同じ意味で使われる
+evens = numbers.select { |n| n.even? }
+```
+
+Rubyは`map`/`filter`というメソッド名まで完全に同じなので、一番違和感なく入れるはず。違いは`{ |n| ... }`というブロック構文を使う点で、JSの`(n) => ...`と役割はほぼ同じ。
+
+## 演習
+
+`cars`という配列(`[{ name: "新幹線", speed: 300 }, { name: "特急", speed: 130 }, { name: "普通", speed: 80 }]`)から、速度が100以上の車両の名前だけを配列にして返す関数を、`.filter()`と`.map()`を組み合わせて書いてください。
+
+### クリア条件
+
+- `.filter()`で速度100以上の車両を絞り込んでいること
+- `.map()`で名前だけの配列に変換していること
+- 結果が`["新幹線", "特急"]`になること

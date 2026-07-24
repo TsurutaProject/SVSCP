@@ -1,0 +1,82 @@
+---
+exercise_id: "ch1-05-optional-chaining"
+title: "オプショナルチェイニング(?.)"
+order: 5
+---
+
+## 説明
+
+オブジェクトのプロパティにアクセスするとき、途中の値が`null`や`undefined`だとエラーになる:
+
+```js
+const user = { profile: null };
+console.log(user.profile.name); // Error: Cannot read properties of null
+```
+
+**オプショナルチェイニング(`?.`)**を使うと、「途中の値がなければ、そこで安全に`undefined`を返す」という書き方ができる:
+
+```js
+console.log(user.profile?.name); // undefined(エラーにならない)
+```
+
+`?.`は`.find()`や`.map()`のようなメソッド呼び出しにも使える:
+
+```js
+users?.find((u) => u.id === targetId)
+```
+
+これは「`users`が存在すれば`.find()`を呼ぶ、存在しなければ`undefined`を返す」という意味。
+
+よくセットで使われるのが**Null合体演算子(`??`)**。「左側が`null`/`undefined`だったら、右側の値を使う」というデフォルト値の指定:
+
+```js
+const displayName = user.profile?.name ?? "名無しさん";
+```
+
+## 実際のプロトタイプでの例
+
+Train_Proto-Typeの`App.jsx`から:
+
+```js
+return currentStage?.obstacles?.find((obstacle) =>
+```
+
+「`currentStage`が存在して、かつ`obstacles`も存在すれば`.find()`を実行する」というチェーン。ステージデータがまだ読み込まれてない瞬間(初期表示時など)にエラーで落ちないようにする、典型的な防御的コーディング。
+
+Cake-Gameの`utils/cakeGeometry.ts`では、`?.`と`??`を組み合わせた例がある:
+
+```ts
+color: cake?.baseColor ?? '#f7b267',
+```
+
+「`cake`が存在してかつ`baseColor`があればその色を使う、なければオレンジ系のデフォルト色(`#f7b267`)を使う」という、存在チェック+デフォルト値を1行で表現してる。この組み合わせ、実務でもかなり頻出。
+
+## コラム:Java・Rubyとの対応
+
+### Java
+
+```java
+String name = (user.getProfile() != null) ? user.getProfile().getName() : null;
+// Java 8以降ならOptionalも使える
+String name = Optional.ofNullable(user.getProfile()).map(Profile::getName).orElse(null);
+```
+
+Javaには`?.`という記法自体はなく(言語仕様として採用されなかった)、`if`文や三項演算子での`null`チェック、または`Optional`クラスを使うのが一般的。JS/TSの`?.`は、この「毎回nullチェックを書く」手間を記号1つで済ませてくれるイメージ。
+
+### Ruby
+
+```ruby
+name = user.profile&.name
+```
+
+Rubyには`&.`(ぼっち演算子、通称)という、ほぼ同じ発想の記法がある。記号が`?.`か`&.`かの違いだけで、「レシーバーが`nil`なら、そこで`nil`を返す」という考え方は完全に同じ。Rubyを触ってたなら、これも一番馴染みやすい部類のはず。
+
+## 演習
+
+`station`というオブジェクト(`{ name: "東京", platform: { number: 3 } }`または`{ name: "新宿" }`のように、`platform`があったりなかったりする)から、ホーム番号があればその番号を、なければ`"未定"`という文字列を返す関数を、`?.`と`??`を使って書いてください。
+
+### クリア条件
+
+- `?.`を使ってプロパティに安全にアクセスしていること
+- `??`を使ってデフォルト値(`"未定"`)を指定していること
+- `platform`がある場合は番号(例:`3`)、ない場合は`"未定"`が返ること

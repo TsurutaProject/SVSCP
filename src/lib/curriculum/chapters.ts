@@ -1,8 +1,11 @@
 import type { ChapterMeta } from "@/lib/curriculum/types";
+import { ch1Exercises } from "../../../content/ch1-js-ts/_index";
 
-// content/ にまだ実データがほとんどないための仮の章・演習リスト。
-// 実際のMDXを追加する際は .claude/skills/add-exercise/SKILL.md の手順に従い、
-// exercise_id (このファイルの exercises[].id) をMDXのfrontmatterと完全一致させること。
+// content/ にまだ実データがない章は仮の演習リストを置いている。
+// 実際のMDXを追加した章は、その章の content/{章フォルダ}/_index.ts から
+// 演習一覧をインポートして置き換える(ch1がその例)。
+// 演習を追加・置き換えする際は .claude/skills/add-exercise/SKILL.md の手順に従い、
+// exercise_id をMDXのfrontmatterと完全一致させること。
 export const chapters: ChapterMeta[] = [
   {
     id: "ch0",
@@ -16,11 +19,7 @@ export const chapters: ChapterMeta[] = [
   {
     id: "ch1",
     title: "JS/TS基礎",
-    exercises: [
-      { id: "ch1-01-variables-and-types", title: "変数と型", order: 1 },
-      { id: "ch1-02-arrow-function", title: "アロー関数", order: 2 },
-      { id: "ch1-03-array-methods", title: "配列メソッド", order: 3 },
-    ],
+    exercises: ch1Exercises,
   },
   {
     id: "ch2",

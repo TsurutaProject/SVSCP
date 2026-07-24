@@ -1,0 +1,77 @@
+---
+exercise_id: "ch1-06-modules"
+title: "import / export(モジュール)"
+order: 6
+---
+
+## 説明
+
+コードを複数のファイルに分けて、お互いに読み込み合う仕組み。
+
+**export(輸出)** — そのファイルの中の変数・関数・型を、他のファイルから使えるように公開する:
+
+```js
+// utils.js
+export const add = (a, b) => a + b;
+```
+
+**import(輸入)** — 他のファイルで公開されたものを取り込む:
+
+```js
+// main.js
+import { add } from './utils.js';
+console.log(add(1, 2)); // 3
+```
+
+`{}`をつけて名前を指定するのが**named export/import**(1ファイルから複数個exportできる)。`{}`をつけない**default export**という書き方もあるけど、今回のプロジェクトでは基本的にnamed exportで統一する方針(CLAUDE.mdのコーディング規約にもある通り)。
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`utils/cakeGeometry.ts`の冒頭:
+
+```ts
+import type { CakeDefinition, CakePieceModel, Fraction, Topping } from '../types/game'
+```
+
+これは「型だけをimportする」という、TypeScript特有の書き方。`import type`とすることで、「これは実行時には存在しない、型チェックのためだけの情報だよ」とコンパイラに伝えられる(ビルド後のJSファイルからはこの行が消える)。
+
+`App.tsx`の冒頭には、たくさんのコンポーネントをimportしてる例がある:
+
+```tsx
+import { useMemo, useState } from 'react'
+import { CakeBoard } from './components/CakeBoard'
+import { CakeSelector } from './components/CakeSelector'
+import { CustomerQueue } from './components/CustomerQueue'
+```
+
+1行目は`react`という外部パッケージからのimport、2行目以降は`./components/...`という自分のプロジェクト内のファイルからのimport。パスの先頭が`./`かどうかで、「外部のライブラリ」か「自分たちが書いたファイル」かが区別できる。
+
+## コラム:Java・Rubyとの対応
+
+### Java
+
+```java
+import java.util.List;
+import com.example.utils.MathHelper;
+```
+
+考え方は同じ(他のクラス・パッケージを読み込む)。ただJavaはクラス単位でファイルが分かれてるのが基本で、「1ファイルから複数の関数をバラバラにexportする」というJS的な感覚とは少し違う。
+
+### Ruby
+
+```ruby
+require 'json'
+require_relative 'utils'
+```
+
+Rubyの`require`/`require_relative`も似た役割だけど、JSの`import { add } from './utils'`のように「取り込む名前を明示的に指定する」感覚は薄い(`require`すると、そのファイルの中身が丸ごとグローバルに読み込まれるイメージに近い)。JSの方が「何を取り込んでるか」がコード上で明示的、と捉えると分かりやすいかも。
+
+## 演習
+
+`fareUtils.js`というファイルに`calculateFare(distance)`という関数(距離に応じて運賃を計算する、中身は自由でOK)を`export`で定義し、別の`main.js`というファイルからその関数を`import`して呼び出すコードを書いてください(2ファイル分書く形)。
+
+### クリア条件
+
+- `fareUtils.js`側で`export`を使って関数を公開していること
+- `main.js`側で`import { calculateFare } from './fareUtils.js'`のようにnamed importで取り込んでいること
+- `main.js`を実行すると、運賃の計算結果が出力されること
