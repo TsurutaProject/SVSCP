@@ -214,7 +214,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      current_team_ids: { Args: never; Returns: string[] }
+      join_default_team: {
+        Args: { p_display_name: string }
+        Returns: {
+          display_name: string
+          id: string
+          joined_at: string
+          role: string
+          team_id: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "team_members"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       [_ in never]: never
