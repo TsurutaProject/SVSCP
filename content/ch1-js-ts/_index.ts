@@ -78,4 +78,9 @@ export const ch1Exercises: ExerciseMeta[] = [
     title: '総合演習:電車の運行管理 & ケーキの注文管理',
     order: 15,
   },
+  {
+    id: 'ch1-16-review-practice',
+    title: 'レビュー演習:このコード、どこが問題?',
+    order: 16,
+  },
 ]
