@@ -1,0 +1,71 @@
+---
+exercise_id: "ch2-04-usestate"
+title: "useStateの基礎"
+order: 4
+---
+
+## 説明
+
+`useState`は、「コンポーネントの中で、値を保持し続け、その値が変わったら画面を再描画する」ためのフック。1章では`useState<T>`の型注釈の読み方を扱ったけど、ここではそもそもなぜ`useState`が必要かを扱う。
+
+普通のJS変数は、コンポーネントが再描画されるたびに初期値にリセットされてしまう:
+
+```tsx
+function Counter() {
+  let count = 0; // これでは再描画のたびに0に戻ってしまう
+
+  return <button onClick={() => count++}>{count}</button>; // 画面も更新されない
+}
+```
+
+`useState`を使うと、値が再描画をまたいで保持され、さらに値を更新すると自動で再描画がトリガーされる:
+
+```tsx
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return <button onClick={() => setCount(count + 1)}>{count}</button>;
+}
+```
+
+ここで大事なポイント:**`count`という変数を直接書き換えても、画面は更新されない**。必ず`setCount(...)`という専用の更新関数を呼ぶことで、初めてReactに「値が変わったから、画面を書き直して」と伝わる。
+
+もう1つ重要な注意点:`setCount(count + 1)`のように「今のcountを使って新しい値を計算する」場合、連続で呼び出すと意図しない動きをすることがある。そういう時は、**関数を渡す形**で書くのがより安全:
+
+```tsx
+setCount((prevCount) => prevCount + 1);
+```
+
+これは「今の最新の値(`prevCount`)を受け取って、新しい値を返す」という書き方で、連続更新でもズレが起きにくい。
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`App.tsx`では、`useState`がたくさんの独立した状態として使われてる:
+
+```tsx
+const [activeCakeId, setActiveCakeId] = useState<CakeKind>('shortcake')
+const [boardPieces, setBoardPieces] = useState<CakePieceModel[]>([...])
+const [result, setResult] = useState<ResultState>(idleResult)
+```
+
+1つのコンポーネントの中に、複数の`useState`が並んでいい、というのがポイント。「今選んでるケーキの種類」「ボード上のケーキの断片」「結果表示の状態」は、それぞれ独立した"箱"として管理されてる。1つの巨大なstateにまとめる必要はなく、意味のまとまりごとに分けるのが一般的。
+
+## コラム:Java・Railsとの対応
+
+### Java
+
+Swingでの近い概念は、フィールド変数の値を書き換えた後、明示的に`repaint()`を呼んで再描画を指示すること。ただしJavaは「値が変わったら自動で画面が更新される」という仕組みがなく、「値を変える」と「画面を更新する」を別々に自分でやる必要がある。Reactの`useState`は、この2つを`setCount(...)`という1回の呼び出しに統合してくれてる、と捉えると分かりやすい。
+
+### Rails
+
+RailsでいうところのActiveRecordのモデルの値を`update`した後、ページが自動で最新の状態に切り替わるわけではなく、改めてページをレンダリングし直す(リクエストを送り直す)必要がある。`useState`が実現してる「値の変化が、即座に画面に反映される」という体験は、Railsの標準的なリクエスト/レスポンスの仕組みとは根本的に違う。この感覚のギャップこそが、初めてReact(あるいはVue、Hotwire/Turboなど)に触れた人が新鮮に感じるポイントだと思う。
+
+## 演習
+
+`likeCount`という状態を`useState`で管理し、「いいね」ボタンを押すたびに1増える`LikeButton`というコンポーネントを作成してください。`setCount(count + 1)`ではなく、関数を渡す形(`setCount((prev) => prev + 1)`)で書くこと。
+
+### クリア条件
+
+- `useState`で`likeCount`が正しく管理されていること
+- 更新が関数を渡す形(`(prev) => prev + 1`)で書かれていること
+- ボタンを押すたびに表示上の数字が増えること

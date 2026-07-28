@@ -1,0 +1,99 @@
+---
+exercise_id: "ch2-09-event-types"
+title: "イベントの型(React.MouseEventなど)"
+order: 9
+---
+
+## 説明
+
+2-3でイベントハンドラを扱った時、`onChange={(e) => setText(e.target.value)}`のように`e`(イベントオブジェクト)を受け取ったのを覚えてるはず。TypeScriptでは、この`e`にも正しい型をつける必要がある。
+
+```tsx
+import type { MouseEvent } from "react";
+
+function handleClick(event: MouseEvent<HTMLButtonElement>): void {
+  console.log(event.clientX); // クリックされたX座標
+}
+
+<button onClick={handleClick}>押して</button>
+```
+
+`MouseEvent<HTMLButtonElement>`の`<HTMLButtonElement>`部分がジェネリクス(1-13で学んだ「型の空欄」)。「このイベントが、具体的にどのHTML要素で起きたものか」を型として指定してる。これにより、`event.target`などにアクセスした時、「その要素固有のプロパティ」まで正しく型チェックされるようになる。
+
+Reactにはイベントの種類ごとに、`MouseEvent`(クリックなど)、`PointerEvent`(タッチ・ペン・マウス統合)、`ChangeEvent`(フォームの値変化)のように、複数の専用の型が用意されてる。どれを使うかは、扱ってるイベントの種類(`onClick`なら`MouseEvent`、`onChange`なら`ChangeEvent`、`onPointerDown`なら`PointerEvent`)に対応させる。
+
+インライン(アロー関数をその場に直接書く)の場合は、実は型を省略しても自動推論されることが多い:
+
+```tsx
+<button onClick={(e) => console.log(e.clientX)}>押して</button>
+// eの型は自動的にMouseEvent<HTMLButtonElement>と推論される
+```
+
+型を明示的に書くのは、主に別の場所で定義した関数(`handleClick`のように、先に関数を作ってから`onClick={handleClick}`と渡すパターン)の場合。
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`components/CakeBoard.tsx`の冒頭:
+
+```tsx
+import { useRef, useState, type MouseEvent, type PointerEvent } from 'react'
+```
+
+`import type`(1-06で学んだ、型だけのimport)を使って、Reactが提供するイベント型を取り込んでる。
+
+実際の使用例:
+
+```tsx
+const handlePointerDown = (event: PointerEvent<SVGSVGElement>): void => {
+  // ...
+}
+
+const handleClickCapture = (event: MouseEvent<SVGSVGElement>): void => {
+  // ...
+}
+```
+
+`PointerEvent<SVGSVGElement>`(SVG要素上でのポインター操作)、`MouseEvent<SVGSVGElement>`(SVG要素上でのクリック)のように、ケーキの円盤(SVGで描画されてる)に対する操作だから、`<SVGSVGElement>`という、SVG特有の型が使われてる。前のレッスンで見た`<HTMLButtonElement>`とは違う型が来てるのは、「対象がボタンなのかSVG要素なのか」で変わってるだけ、というのがポイント。
+
+`components/CakePiece.tsx`には、少し変わった書き方もある:
+
+```tsx
+const handleDocumentPointerMove = (event: globalThis.PointerEvent): void => {
+```
+
+これは2-5で扱った「`document`に直接イベントを取り付ける」パターンで使われてる型。Reactの`PointerEvent`(先頭に`type`をつけてimportしたもの)と名前が被るため、「ブラウザ標準の、素の`PointerEvent`」であることを明示するために`globalThis.`をつけてる。TypeScriptでは、同じ名前の型が複数の場所に存在する時、こうやって区別することがある、という点だけ知っておくといい。
+
+## コラム:Java・Railsとの対応
+
+### Java
+
+```java
+button.addActionListener(e -> {
+    System.out.println(e.getSource());
+});
+```
+
+Javaの`ActionEvent`も、`.getSource()`のようなメソッドを通じて「どのUI部品でイベントが起きたか」の情報を持ってる。ReactのMouseEvent等がジェネリクスで対象要素を指定するのに対し、Javaは`getSource()`の戻り値を後から`instanceof`でチェックして絞り込む、という違いがある。TypeScriptの方が「最初から対象を型で指定できる」分、コンパイル時に安心感がある。
+
+### Rails
+
+Railsで近い感覚があるとすれば、Stimulusのコントローラーでの`event`の扱いが近い。
+
+```js
+// Stimulusコントローラー
+handleClick(event) {
+  console.log(event.target.dataset.id)
+}
+```
+
+Stimulusの`event`も、DOMのイベントオブジェクトをそのまま受け取ってる。ただしStimulus(JS)は動的型付けだから、`event.target`が本当に期待通りの要素か、コードを書いてる最中には保証されない。Reactの`MouseEvent<HTMLButtonElement>`のように「対象の要素の種類を型で固定する」という感覚は、Railsの標準的な開発フロー(ビュー側はERBでほぼ型を意識しない)にはあまりない、TypeScript特有の恩恵と言える。
+
+## 演習
+
+`handleInputChange`という関数を作成してください。`ChangeEvent<HTMLInputElement>`型のイベントを受け取り、`event.target.value`(入力された文字列)を`console.log`で出力するようにしてください。`import type { ChangeEvent } from "react"`を使うこと。
+
+### クリア条件
+
+- `ChangeEvent<HTMLInputElement>`という型注釈が正しく使われていること
+- `import type`で型がimportされていること
+- `event.target.value`が正しく取得・出力されること

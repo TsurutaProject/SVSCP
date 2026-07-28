@@ -1,0 +1,76 @@
+---
+exercise_id: "ch2-10-capstone"
+title: "総合演習:電車の速度表示パネル & ケーキの注文キュー"
+order: 10
+---
+
+## この演習について
+
+2章で学んだ9つの知識を、ここまでのレッスンで実際に引用してきたプロトタイプのコードパターンを組み合わせて再現する、総仕上げの演習。**新しい機能を発明するのではなく、ここまで見てきた実在のロジックをそのまま組み立て直す**ことを意識してほしい。
+
+**Part A**は電車ゲームの`showSpeed`(速度表示の切り替え)と`fastRailCount`(高速レールの集計)を土台にした「速度表示パネル」。**Part B**はケーキゲームの`CustomerQueue`(注文キュー)と`GuidedTutorial`の自動スクロールを土台にした「注文キュー」。
+
+---
+
+## Part A:電車の速度表示パネル
+
+以下のようなデータを受け取るとする:
+
+```ts
+interface Rail {
+  id: string
+  type: "fast" | "normal"
+}
+```
+
+### 要件
+
+1. **`RailPanel`**というコンポーネントを作成する。Propsとして`rails: Rail[]`を受け取る(1-1, 1-2)
+2. `showSpeed`という状態を`useState`で管理し、初期値は`false`にする(4)
+3. 「速度表示を切り替える」ボタンを設置し、押すたびに`showSpeed`を反転させる(3, 4)
+4. `showSpeed`が`true`の時だけ、`&&`を使って「高速レール数:○本」という表示を出す(6)。本数は`rails`を`.filter()`で絞り込んで数える(1章の知識の再利用)
+5. `rails`を`.map()`で一覧表示し、`key`には`id`を使う(7)。それぞれの項目は、`type`が`"fast"`かどうかで、三項演算子を使って見た目(例:文字色や、末尾に付ける記号)を変える(6)
+6. レール一覧の上に、`<select>`(種類でフィルタする、`"all" | "fast" | "normal"`)を設置し、`onChange`イベントの型を`ChangeEvent<HTMLSelectElement>`として明示的に書く(9)
+
+### クリア条件(Part A)
+
+- `showSpeed`の切り替えが`useState`で正しく実装されていること
+- `&&`による条件付きレンダリングが正しく動作すること
+- `.map()` + `key`によるリスト表示が正しく行われていること
+- `<select>`の`onChange`ハンドラに`ChangeEvent<HTMLSelectElement>`型が明示されていること
+
+---
+
+## Part B:ケーキの注文キュー
+
+以下のようなデータを受け取るとする(1章総合演習の`Order`型をベースにする):
+
+```ts
+interface Order {
+  id: string
+  customerName: string
+  cakeKind: "shortcake" | "chocolate"
+  isCompleted: boolean
+}
+```
+
+### 要件
+
+1. **`OrderQueue`**というコンポーネントを作成する。Propsとして`orders: Order[]`と、注文完了時に呼ぶ`onComplete: (orderId: string) => void`を受け取る(1-1, 1-2)
+2. `orders`が空配列の場合は、三項演算子を使って「注文はありません」という表示を出す。1件以上ある場合は、通常のリスト表示をする(6)
+3. `orders`を`.map()`で一覧表示し、`key`には`id`を使う(7)。各項目には「完了」ボタンをつけ、押すと`onComplete(order.id)`を呼ぶ(2, 3)
+4. **`highlightedId`**という状態を`useState<string | null>`で管理する。「完了」ボタンが押された注文のidを一時的に`highlightedId`にセットし(押された項目を強調表示するため)、三項演算子でハイライト用のスタイルを出し分ける(4, 6)
+5. **`useRef`**を使って、キューの一番下を指す空の`<div>`への参照を作る(5)
+6. **`useEffect`**を使い、`orders.length`が変化するたび(新しい注文が増えるたび)に、その`<div>`まで`scrollIntoView({ behavior: "smooth" })`で自動スクロールする(8)
+
+### クリア条件(Part B)
+
+- `orders`が空の場合と1件以上の場合で、表示が正しく出し分けられていること
+- `.map()` + `key`によるリスト表示が正しく行われていること
+- `onComplete`コールバックが、正しい`id`で呼ばれること
+- `highlightedId`による強調表示の切り替えが動作すること
+- `useRef` + `useEffect` + `scrollIntoView`による自動スクロールが実装されていること
+
+---
+
+Part A・Part Bの両方をクリアできたら、2章は完了。次は3章(実践編)に進める。

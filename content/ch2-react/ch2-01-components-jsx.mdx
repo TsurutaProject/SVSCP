@@ -1,0 +1,81 @@
+---
+exercise_id: "ch2-01-components-jsx"
+title: "コンポーネントとJSXの基本"
+order: 1
+---
+
+## 説明
+
+Reactアプリは、「コンポーネント」という小さな部品を組み合わせて画面を作る、という考え方でできている。コンポーネントとは、**「HTMLっぽい見た目を返す、ただの関数」**。
+
+```tsx
+function Greeting() {
+  return <h1>こんにちは</h1>;
+}
+```
+
+これだけでコンポーネントとして成立する。**関数名は必ず大文字始まり**にする必要がある(`function greeting()`のように小文字にすると、JSXが「自作のコンポーネント」ではなく「普通のHTMLタグ」だと誤解してエラーになる)。
+
+`<h1>こんにちは</h1>`のような、HTMLに似た書き方を**JSX**と呼ぶ。見た目はHTMLだけど、実体はJavaScriptの関数呼び出しに変換される。JSXの中では`{}`を使って、JSの値や式をそのまま埋め込める(1章のテンプレートリテラルの`${}`と近い発想):
+
+```tsx
+function Greeting() {
+  const name = "のりまき";
+  return <h1>こんにちは、{name}さん</h1>;
+}
+```
+
+作ったコンポーネントは、別のコンポーネントの中で`<Greeting />`のように、HTMLタグのように呼び出して使える。
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`components/CakeSelector.tsx`の冒頭部分:
+
+```tsx
+export function CakeSelector({
+  cakes,
+  activeCakeId,
+  unlockedCakeIds,
+  money,
+  onSelectCake,
+  onBuyCake,
+}: CakeSelectorProps) {
+  return (
+    <section className="cake-selector" aria-label="販売するケーキ">
+      <div className="cake-selector__header">
+        <h2>ケーキ</h2>
+      </div>
+      {/* ... */}
+    </section>
+  )
+}
+```
+
+`CakeSelector`という名前(大文字始まり)、`return`の中にJSXを書く、という基本構造がそのまま出てる。引数の部分(`{ cakes, activeCakeId, ... }`)は分割代入(1-02で学んだやつ)そのもの。これは次のレッスン(Props)で詳しく扱う。
+
+`className="cake-selector"`は、HTMLの`class`属性に相当するもの。JSXでは予約語の`class`と被らないように`className`という名前を使う、という決まりがある。
+
+## コラム:Java・Railsとの対応
+
+### Java
+
+JavaのGUI(Swingなど)は、「コンポーネント(部品)を組み合わせて画面を作る」という発想自体はReactと似てる。ただしJavaは`new JButton("ボタン")`のように、オブジェクトをインスタンス化して部品を組み立てるスタイルで、Reactの「関数を呼ぶと、その結果としてUIの説明(JSX)が返ってくる」という考え方とは、書き味がかなり違う。JSXは「UIを、値として扱える」という点がReact特有の発想。
+
+### Rails
+
+Railsであれば、`.erb`ファイルにHTMLを直接書き、`<%= %>`で値を埋め込むスタイルが一番近い。
+
+```erb
+<h1>こんにちは、<%= @name %>さん</h1>
+```
+
+`<%= %>`はJSXの`{}`と役割的に近い(値をその場に埋め込む)。ただしERBは「テンプレートファイルの中にRubyを埋め込む」発想で、JSXは逆に「JSのコードの中にHTMLっぽい構文を埋め込む」発想。主従が逆という点が、地味に重要な違い。最近のRailsだとViewComponentのような「Rubyのクラスとして再利用可能なUI部品を作る」仕組みもあって、これはReactのコンポーネントという発想にかなり近づいている。
+
+## 演習
+
+`SelfIntroduction`という名前のコンポーネントを作成してください。中に自分の好きなもの(ゲームが好き、など)を含んだ`<p>`タグを1つ返すようにしてください。
+
+### クリア条件
+
+- コンポーネント名が大文字始まりになっていること
+- `<p>`タグを含むJSXが正しく`return`されていること

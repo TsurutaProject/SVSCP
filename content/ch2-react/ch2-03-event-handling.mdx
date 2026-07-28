@@ -1,0 +1,103 @@
+---
+exercise_id: "ch2-03-event-handling"
+title: "イベントハンドリング"
+order: 3
+---
+
+## 説明
+
+Reactでは、HTMLの要素に**イベントハンドラ(何かが起きた時に呼ばれる関数)**を、Props感覚で直接渡す。
+
+```tsx
+<button onClick={() => console.log("押された")}>押して</button>
+```
+
+`onClick`に渡してるのは「その場で実行した結果」ではなく「関数そのもの」という点が重要(1章のコラムでも軽く触れた通り)。`onClick={handleClick}`のように、別の場所で定義した関数を渡すことも多い:
+
+```tsx
+function handleClick() {
+  console.log("押された");
+}
+
+<button onClick={handleClick}>押して</button>
+```
+
+`onClick`以外にも、たくさんの種類のイベントがある。代表的なもの:
+
+- **`onChange`** — フォームの入力欄で、値が変わった時
+- **`onPointerDown` / `onPointerMove` / `onPointerUp`** — マウスのクリック・タッチ操作全般(指やマウスが「触れた」「動いた」「離れた」)
+
+```tsx
+<input
+  value={text}
+  onChange={(e) => setText(e.target.value)}
+/>
+```
+
+`onChange`のイベントハンドラには、イベントの詳細情報が入ったオブジェクト(`e`)が自動的に渡される。`e.target.value`で「今、入力欄に実際に入力されてる値」が取れる。
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`components/CakeBoard.tsx`に、ポインターイベントを組み合わせた実例:
+
+```tsx
+<div
+  onPointerDown={handlePointerDown}
+  onPointerMove={handlePointerMove}
+  onPointerUp={handlePointerUp}
+>
+```
+
+これは「ケーキの円盤をドラッグして切る」という操作の中核部分。`onPointerDown`(指/マウスが触れた瞬間)で「操作を開始」、`onPointerMove`(動いてる間)で「切る位置を追跡」、`onPointerUp`(離した瞬間)で「操作を確定」という、3つのイベントが連携して1つのドラッグ操作を作ってる。ドラッグ系の操作は、ほぼ必ずこの3点セットで実装される。
+
+`components/GameControls.tsx`には、Propsとして受け取った通知用関数を、`onClick`の中でラップして呼んでる例もある:
+
+```tsx
+interface GameControlsProps {
+  onChangeInteractionMode: (mode: InteractionMode) => void
+}
+
+// ...
+<button onClick={() => onChangeInteractionMode('cut')}>切るモード</button>
+<button onClick={() => onChangeInteractionMode('move')}>動かすモード</button>
+```
+
+`onClick={() => onChangeInteractionMode('cut')}`のように、アロー関数で包んで、引数付きで呼び出すのはよくあるパターン。前のレッスン(Props)で学んだ「関数を渡す」と、ここで学んだ「イベントハンドラに関数を渡す」が組み合わさってる形。
+
+## コラム:Java・Railsとの対応
+
+### Java
+
+```java
+button.addActionListener(e -> System.out.println("押された"));
+```
+
+JavaのSwingにも、`addActionListener`のように「イベントが起きたら呼ばれる処理」を登録する仕組みがある。考え方はReactの`onClick`とかなり近い。ラムダ式(`e -> ...`)を渡す書き方も、Reactのアロー関数を渡す書き方と発想は同じ。
+
+### Rails
+
+Railsの文脈だと、Stimulus(Hotwireの一部)のコントローラーでの書き方が一番近い:
+
+```erb
+<button data-action="click->greeting#sayHello">押して</button>
+```
+
+```js
+// greeting_controller.js
+export default class extends Controller {
+  sayHello() {
+    console.log("押された")
+  }
+}
+```
+
+`data-action="click->..."`で「クリックされたら、このメソッドを呼ぶ」という紐付け方をする。ReactのonClickと発想は似てるけど、Stimulusは**HTML側(data属性)に紐付けの情報を書く**のに対し、Reactは**JSX側にそのまま関数を渡す**という違いがある。Hotwireの設計思想自体が「HTMLをできるだけそのままに保ちつつ、JSは最小限」というスタンスなので、Reactの「JSの中でUI全体を組み立てる」考え方とは、思想レベルで結構違う。
+
+## 演習
+
+`Counter`というコンポーネントを作成してください。`count`という数値のProps(初期表示用)を受け取り、「+1」ボタンと「リセット」ボタンの2つを表示してください(まだ`useState`は使わず、ボタンを押した時に`console.log`で何か表示するだけでOK。実際に数字を変える処理は次のレッスンでやる)。
+
+### クリア条件
+
+- `count`をPropsとして受け取り、表示していること
+- 「+1」「リセット」それぞれのボタンに、正しく`onClick`ハンドラが設定されていること

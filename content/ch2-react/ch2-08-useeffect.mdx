@@ -1,0 +1,86 @@
+---
+exercise_id: "ch2-08-useeffect"
+title: "useEffectの基礎"
+order: 8
+---
+
+## 説明
+
+`useState`は「値を保持する」ためのフックだったけど、**`useEffect`は「コンポーネントが表示された後(または、特定の値が変わった後)に、何か処理を実行する」**ためのフック。
+
+```tsx
+useEffect(() => {
+  console.log("画面が表示された、または更新された");
+});
+```
+
+第2引数に「依存配列」を渡すと、「その配列の中の値が変わった時だけ実行する」という制御ができる:
+
+```tsx
+useEffect(() => {
+  console.log("countが変わった時だけ実行される");
+}, [count]);
+```
+
+- 依存配列を省略すると、毎回のレンダリングのたびに実行される
+- 依存配列を空配列`[]`にすると、最初の1回だけ実行される(「画面が最初に表示された時だけ何かしたい」という場合によく使う)
+- 依存配列に特定の値を入れると、その値が変わった時だけ実行される
+
+`useEffect`の中で`return`する関数は、**「クリーンアップ関数」**と呼ばれ、「次にこのeffectが再実行される直前」または「コンポーネントが画面から消える時」に自動で呼ばれる。これは、2-5で扱った`addEventListener`のような「後片付けが必要な処理」とセットで使うことが多い:
+
+```tsx
+useEffect(() => {
+  const handleResize = () => console.log("リサイズされた");
+  window.addEventListener("resize", handleResize);
+
+  return () => {
+    window.removeEventListener("resize", handleResize); // 後片付け
+  };
+}, []);
+```
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`components/GuidedTutorial.tsx`から:
+
+```tsx
+useEffect(() => {
+  if (step === null || step === 'intro') {
+    return
+  }
+
+  const focusTarget = document.querySelector(focusSelectors[step] ?? '')
+  focusTarget?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}, [step])
+```
+
+これは「チュートリアルの`step`(現在のステップ)が変わるたびに、対応するDOM要素までスムーズにスクロールする」という処理。依存配列に`[step]`が入ってるので、`step`が変わった時だけ実行される。2-5で学んだ`document.querySelector`と、`useEffect`が組み合わさってる実例。
+
+先頭の`if (step === null || step === 'intro') { return }`は、「まだステップが始まってない、またはイントロ画面なら、何もしないで処理を終える」という早期リターン(1章のunion typeとoptional/nullの知識がここでも使われてる)。
+
+## コラム:Java・Railsとの対応
+
+### Java
+
+`useEffect`にピッタリ対応するものはJavaにはあまりない。強いて言うなら、GUIコンポーネントが画面に表示された時に呼ばれるライフサイクルメソッド(`componentDidMount`的なもの、Swingなら`addNotify()`など)が近い。ただJavaのGUIは「値の変化を監視して自動で再実行する」という発想が薄く、明示的にイベントリスナーを仕込むのが基本になる。`useEffect`の「依存配列に応じて自動実行される」という仕組みは、Reactに強く特有のもの。
+
+### Rails
+
+RailsのActiveRecordコールバック(`after_save`, `before_create`など)が、発想としては一番近いかもしれない:
+
+```ruby
+class Order < ApplicationRecord
+  after_save :send_confirmation_email
+end
+```
+
+「あるイベント(保存された)の後に、自動的に処理が実行される」という構造は`useEffect`と似てる。ただし決定的に違うのは、ActiveRecordのコールバックは「データの状態変化」に反応するのに対し、`useEffect`は「画面(コンポーネント)の状態変化」に反応するという点。Reactの場合、`[step]`のような依存配列で「何をきっかけに再実行するか」を自分で明示的に指定する必要があるけど、ActiveRecordのコールバックは「保存された」という決まったタイミングにあらかじめ紐付いてる、という違いもある。
+
+## 演習
+
+`useEffect`を使って、コンポーネントが表示された最初の1回だけ`console.log("マウントされました")`が実行されるコンポーネントを作成してください。さらに、そのコンポーネントが画面から消える時に`console.log("アンマウントされました")`が実行されるよう、クリーンアップ関数も書いてください。
+
+### クリア条件
+
+- 依存配列が空配列`[]`になっていて、最初の1回だけ実行されること
+- クリーンアップ関数(`return () => {...}`)が正しく書かれていること

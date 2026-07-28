@@ -1,5 +1,6 @@
 import type { ChapterMeta } from "@/lib/curriculum/types";
 import { ch1Exercises } from "../../../content/ch1-js-ts/_index";
+import { ch2Exercises } from "../../../content/ch2-react/_index";
 
 // content/ にまだ実データがない章は仮の演習リストを置いている。
 // 実際のMDXを追加した章は、その章の content/{章フォルダ}/_index.ts から
@@ -24,11 +25,7 @@ export const chapters: ChapterMeta[] = [
   {
     id: "ch2",
     title: "React基礎",
-    exercises: [
-      { id: "ch2-01-jsx-basics", title: "JSXの基本", order: 1 },
-      { id: "ch2-02-props-and-state", title: "propsとstate", order: 2 },
-      { id: "ch2-03-list-rendering", title: "リストレンダリング(key)", order: 3 },
-    ],
+    exercises: ch2Exercises,
   },
   {
     id: "ch3",

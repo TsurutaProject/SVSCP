@@ -1,0 +1,100 @@
+---
+exercise_id: "ch2-05-dom-useref"
+title: "DOMの基本とuseRef"
+order: 5
+---
+
+## 説明
+
+ブラウザは、表示してるWebページを「DOM(Document Object Model)」というオブジェクトの木構造として内部で管理してる。`<div>`や`<button>`といったHTMLタグ1つ1つが、DOMの中では「オブジェクト」として存在してる。
+
+昔ながらのJavaScriptでは、この DOM を直接操作してWebページを動かしてた:
+
+```js
+const button = document.querySelector(".my-button");
+button.addEventListener("click", () => {
+  console.log("押された");
+});
+```
+
+`document.querySelector(...)`で「DOMの中から、特定の要素を探し出す」、`addEventListener`で「その要素に、直接イベントを取り付ける」という操作。
+
+**Reactを使うと、基本的にこの直接操作は不要になる**。JSXと`useState`を書けば、「stateが変わったら、画面のどこをどう書き換えるか」はReactが裏側で自動的にやってくれる。ただし、Reactの管理の"外側"にある処理をしたい時、DOMに直接アクセスする必要が出てくる。それを可能にするのが**`useRef`**。
+
+```tsx
+function FocusableInput() {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleFocus = () => {
+    inputRef.current?.focus(); // 実際のDOM要素に対して、直接「フォーカスを当てる」処理を呼ぶ
+  };
+
+  return (
+    <>
+      <input ref={inputRef} />
+      <button onClick={handleFocus}>フォーカスする</button>
+    </>
+  );
+}
+```
+
+`useRef<HTMLInputElement | null>(null)`(1章で学んだジェネリクス+union typeの組み合わせ)で「箱」を作り、JSXの`ref={inputRef}`でその箱と実際のDOM要素を紐付ける。`inputRef.current`から、その要素に対する直接操作(`.focus()`など)ができるようになる。`?.`(オプショナルチェイニング)がついてるのは、まだDOM要素が存在しない可能性があるため。
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`components/GuidedTutorial.tsx`から:
+
+```tsx
+const coachRef = useRef<HTMLElement | null>(null)
+
+// ...
+const focusTarget = document.querySelector(focusSelectors[step] ?? '')
+```
+
+`useRef<HTMLElement | null>(null)`で、チュートリアルの案内役(コーチ)が指し示す対象のDOM要素を保持する箱を作ってる。`document.querySelector(...)`は、`useRef`とは別に、画面上のどこかにある要素を、CSSセレクタで直接検索する処理。
+
+`components/CakePiece.tsx`には、`document`に直接イベントを取り付ける、より本格的な例がある:
+
+```tsx
+document.addEventListener('pointermove', handleDocumentPointerMove)
+document.addEventListener('pointerup', handleDocumentPointerUp, { once: true })
+document.addEventListener('pointercancel', handleDocumentPointerCancel, { once: true })
+```
+
+これは「ケーキの一切れをドラッグしてる間、指がその要素の外に出ても、動きを追跡し続けたい」というケース。特定のコンポーネントの範囲を超えた操作をしたい時は、こうやって`document`(ページ全体)に直接イベントを取り付ける必要がある。`{ once: true }`は「一度実行されたら、自動的に登録解除する」という設定。
+
+## コラム:Java・Railsとの対応
+
+### Java
+
+Swingでいうところのユーザーインターフェースのコンポーネント(`JButton`のインスタンスなど)を直接操作するのが、DOM直接操作に近い感覚。`button.requestFocus()`のように、オブジェクトのメソッドを直接呼ぶという操作自体はJavaのGUIプログラミングでも馴染みがあるはず。ReactのuseRefは、「普段はReactに管理を任せてるけど、必要な時だけ直接メソッドを呼べる抜け道を用意する」仕組み、とイメージすると分かりやすい。
+
+### Rails
+
+Stimulusコントローラーには、まさに`useRef`と同じ役割の**`target`**という仕組みがある:
+
+```js
+export default class extends Controller {
+  static targets = ["input"]
+
+  focusInput() {
+    this.inputTarget.focus()
+  }
+}
+```
+
+```erb
+<input data-greeting-target="input">
+<button data-action="click->greeting#focusInput">フォーカス</button>
+```
+
+`data-greeting-target="input"`でDOM要素に印をつけておき、`this.inputTarget`でその要素に直接アクセスする。「必要な時だけDOMに直接手を伸ばす」という発想は、`useRef`とほぼ同じ。Stimulusを触ったことがあるなら、この概念自体は驚くほどすんなり入ってくるはず。
+
+## 演習
+
+`useRef`を使って、ボタンを押すとテキスト入力欄に自動でフォーカスが当たる、シンプルなコンポーネントを作成してください(`inputRef.current?.focus()`を使うこと)。
+
+### クリア条件
+
+- `useRef<HTMLInputElement | null>(null)`が正しく使われていること
+- ボタンを押すと、入力欄にフォーカスが当たること

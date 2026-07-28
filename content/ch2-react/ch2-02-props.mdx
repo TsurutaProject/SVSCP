@@ -1,0 +1,114 @@
+---
+exercise_id: "ch2-02-props"
+title: "Props(受け渡し+型付け)"
+order: 2
+---
+
+## 説明
+
+コンポーネントは、関数の引数のように「外から値を受け取る」ことができる。これを**Props(プロパティ)**と呼ぶ。
+
+```tsx
+interface GreetingProps {
+  name: string;
+}
+
+function Greeting({ name }: GreetingProps) {
+  return <h1>こんにちは、{name}さん</h1>;
+}
+
+// 使う側
+<Greeting name="のりまき" />
+```
+
+`{ name }: GreetingProps`の部分は、分割代入+型注釈(1章で学んだ組み合わせ)そのもの。JSXで`<Greeting name="のりまき" />`と書くと、`name="のりまき"`という値が1つのオブジェクト(`{ name: "のりまき" }`)としてコンポーネントに渡され、それを分割代入で受け取ってる。
+
+Propsには、文字列や数値だけでなく、**関数を渡すこともできる**。これは「親のコンポーネントが、子のコンポーネントで起きた出来事(ボタンが押された、など)を知りたい」時によく使うパターン:
+
+```tsx
+interface ButtonProps {
+  label: string;
+  onPress: () => void;
+}
+
+function MyButton({ label, onPress }: ButtonProps) {
+  return <button onClick={onPress}>{label}</button>;
+}
+
+// 使う側
+<MyButton label="購入する" onPress={() => console.log("押された")} />
+```
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`components/CakeSelector.tsx`から、Propsの型定義と受け取り:
+
+```tsx
+interface CakeSelectorProps {
+  cakes: CakeDefinition[]
+  activeCakeId: CakeKind
+  unlockedCakeIds: CakeKind[]
+  money: number
+  onSelectCake: (cakeId: CakeKind) => void
+  onBuyCake: (cakeId: CakeKind) => void
+}
+
+export function CakeSelector({
+  cakes,
+  activeCakeId,
+  unlockedCakeIds,
+  money,
+  onSelectCake,
+  onBuyCake,
+}: CakeSelectorProps) {
+  // ...
+}
+```
+
+ここで注目してほしいのが、`onSelectCake: (cakeId: CakeKind) => void`という関数の型(1-08で学んだ「関数の型」の応用)。「ケーキが選択されたら、そのケーキのidを引数にして、何かしらの処理をする(戻り値はなし)」という、親コンポーネントに"通知"するための関数をPropsとして受け取ってる。
+
+`cakes: CakeDefinition[]`(前にやったinterfaceの配列)、`activeCakeId: CakeKind`(union type)のように、1章で学んだ型の知識が、Propsの型定義の中でそのまま全部使われてるのが分かるはず。
+
+## コラム:Java・Railsとの対応
+
+### Java
+
+```java
+class Greeting {
+    private String name;
+
+    public Greeting(String name) {
+        this.name = name;
+    }
+}
+```
+
+Javaでの「オブジェクトに値を渡す」といえばコンストラクタが近い。ただしJavaのコンストラクタは「一度だけ値を設定して、そのインスタンスに保存する」という発想だけど、Reactのpropsは「呼ばれるたびに、その時点の値がまるごと渡される」という違いがある(親の値が変わるたびに、子コンポーネントは新しいpropsで再実行される)。
+
+### Rails
+
+RailsのViewComponentを触ったことがあるなら、初期化時に値を渡す書き方がPropsに近い:
+
+```ruby
+class GreetingComponent < ViewComponent::Base
+  def initialize(name:)
+    @name = name
+  end
+end
+```
+
+```erb
+<%= render(GreetingComponent.new(name: "のりまき")) %>
+```
+
+キーワード引数で値を渡し、コンポーネント内で使う、という構造はPropsとかなり似てる。ただしViewComponentは「一度渡したら固定」のイメージに近く、Reactのように「親の値が変わるたびに自動で再描画される」という発想はない。ここはRailsのリクエスト/レスポンスサイクル(1回のリクエストごとに描画し直す)と、Reactの「画面上で状態が変わり続ける」という前提の違いによるもの。
+
+## 演習
+
+`ProfileCard`というコンポーネントを作成してください。Propsとして`name`(文字列)と`hobby`(文字列)を受け取り、`「のりまき:ゲーム」`のような形式で表示する`<p>`タグを返すようにしてください。Propsの型を、`interface ProfileCardProps`として明示的に定義すること。
+
+### クリア条件
+
+- `ProfileCardProps`というinterfaceが正しく定義されていること
+- Propsを分割代入で受け取っていること
+- `name`と`hobby`を組み合わせた文字列が正しく表示されること

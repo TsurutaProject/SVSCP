@@ -1,0 +1,140 @@
+---
+exercise_id: "ch2-11-review-practice"
+title: "レビュー演習:このコード、どこが問題?"
+order: 11
+---
+
+## この演習について
+
+1章のレビュー演習(1-16)に続き、今回はReact特有の「一見動くけど問題があるコード」を扱う。以下の3つのコード例、それぞれ何が問題か指摘し、修正してください。
+
+---
+
+### コード例1
+
+```tsx
+function SaveButton() {
+  const handleSave = () => {
+    console.log("保存しました");
+  };
+
+  return <button onClick={handleSave()}>保存</button>;
+}
+```
+
+**ヒント**:2-3(イベントハンドリング)で学んだ内容に関係がある。
+
+<details>
+<summary>解答を見る</summary>
+
+**問題**:`onClick={handleSave()}`と、**関数呼び出しの結果**を渡してしまっている。`handleSave()`と書くと、ボタンが押される前に、**コンポーネントが描画される瞬間に即座に実行されてしまう**。しかも`handleSave()`の戻り値(この場合は`undefined`)が`onClick`に渡ることになり、ボタンを押しても何も起きない。
+
+**修正例**:
+
+```tsx
+<button onClick={handleSave}>保存</button>
+// または
+<button onClick={() => handleSave()}>保存</button>
+```
+
+`onClick`には「関数そのもの」を渡す必要がある。`()`をつけて呼び出してしまうと、「今すぐ実行した結果」を渡すことになってしまう。
+
+</details>
+
+---
+
+### コード例2
+
+```tsx
+interface Todo {
+  id: string
+  text: string
+}
+
+function TodoList({ todos }: { todos: Todo[] }) {
+  return (
+    <ul>
+      {todos.map((todo, index) => (
+        <li key={index}>{todo.text}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+**ヒント**:2-7(リストレンダリングとkey)で学んだ内容に関係がある。
+
+<details>
+<summary>解答を見る</summary>
+
+**問題**:`key={index}`と、**配列のインデックス番号**を`key`に使ってしまっている。`Todo`はすでに一意な`id`を持っているのに、それを使わずインデックスを使うと、リストの並び替えや途中の項目の削除が起きた際に、Reactが要素を正しく追跡できなくなり、表示がおかしくなるバグの原因になる。
+
+**修正例**:
+
+```tsx
+{todos.map((todo) => (
+  <li key={todo.id}>{todo.text}</li>
+))}
+```
+
+データが一意な`id`を持っている場合は、必ずそれを`key`に使う。
+
+</details>
+
+---
+
+### コード例3
+
+```tsx
+function SearchBox() {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<string[]>([]);
+
+  useEffect(() => {
+    const filtered = ["りんご", "バナナ", "みかん"].filter((item) =>
+      item.includes(query)
+    );
+    setResults(filtered);
+  });
+
+  return (
+    <div>
+      <input value={query} onChange={(e) => setQuery(e.target.value)} />
+      <p>{results.length}件見つかりました</p>
+    </div>
+  );
+}
+```
+
+**ヒント**:2-8(useEffectの基礎)で学んだ内容に関係がある。
+
+<details>
+<summary>解答を見る</summary>
+
+**問題**:`useEffect`に**依存配列が渡されていない**。依存配列を省略すると、コンポーネントが再描画されるたびに(つまり`setResults`が呼ばれて再描画が起きるたびに)`useEffect`の中身が実行される。この場合、`useEffect`の中で`setResults`を呼んでいるため、**「再描画→useEffect実行→setResults→再描画→useEffect実行→…」という無限ループ**に陥る危険がある。
+
+**修正例**:
+
+```tsx
+useEffect(() => {
+  const filtered = ["りんご", "バナナ", "みかん"].filter((item) =>
+    item.includes(query)
+  );
+  setResults(filtered);
+}, [query]);
+```
+
+依存配列に`[query]`を指定することで、「`query`が変わった時だけ」実行されるようになり、無限ループを防げる。
+
+</details>
+
+---
+
+## まとめ
+
+今回の3つの問題(関数呼び出しの結果を渡してしまう、indexをkeyに使う、依存配列の欠如による無限ループ)は、**Reactを学び始めた頃に誰もが一度は踏む、典型的な落とし穴**。AIが生成するコードでも、特に3つ目(依存配列の欠如)は見落とされがちなので、レビューする際は必ずチェックする習慣をつけるといい。
+
+### クリア条件
+
+- 3つのコード例すべてについて、問題点を自分の言葉で説明できること
+- 3つとも、修正したコードを書けること
