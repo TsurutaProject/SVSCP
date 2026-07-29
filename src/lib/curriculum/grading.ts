@@ -13,8 +13,24 @@ type GradedExercise = {
 // 対応を追加する際は、ここにエントリを追加した上で
 // content/{chapterDir}/{exerciseId}.solution.ts と
 // content/{chapterDir}/{exerciseId}.test.ts を用意すること。
+// ch1-13-generics-reading は「実際に動かす必要はなく、考えて答えを出すだけ」の
+// 設計(実行可能なコードを書く演習ではない)ため、自動採点の対象外。
 const GRADED_EXERCISES: GradedExercise[] = [
   { chapterDir: "ch1-js-ts", exerciseId: "ch1-01-arrow-function" },
+  { chapterDir: "ch1-js-ts", exerciseId: "ch1-02-destructuring-spread" },
+  { chapterDir: "ch1-js-ts", exerciseId: "ch1-03-array-map-filter" },
+  { chapterDir: "ch1-js-ts", exerciseId: "ch1-04-template-literals" },
+  { chapterDir: "ch1-js-ts", exerciseId: "ch1-05-optional-chaining" },
+  { chapterDir: "ch1-js-ts", exerciseId: "ch1-06-modules" },
+  { chapterDir: "ch1-js-ts", exerciseId: "ch1-07-basic-types" },
+  { chapterDir: "ch1-js-ts", exerciseId: "ch1-08-function-types" },
+  { chapterDir: "ch1-js-ts", exerciseId: "ch1-09-interface" },
+  { chapterDir: "ch1-js-ts", exerciseId: "ch1-10-union-types" },
+  { chapterDir: "ch1-js-ts", exerciseId: "ch1-11-optional-null" },
+  { chapterDir: "ch1-js-ts", exerciseId: "ch1-12-nested-types" },
+  { chapterDir: "ch1-js-ts", exerciseId: "ch1-14-utility-types" },
+  { chapterDir: "ch1-js-ts", exerciseId: "ch1-15-capstone" },
+  { chapterDir: "ch1-js-ts", exerciseId: "ch1-16-review-practice" },
 ];
 
 export function isGraded(exerciseId: string): boolean {
