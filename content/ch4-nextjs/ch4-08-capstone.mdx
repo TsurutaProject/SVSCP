@@ -1,0 +1,62 @@
+---
+exercise_id: "ch4-08-capstone"
+title: "総合演習:ケーキ人気投票ランキング"
+order: 8
+---
+
+## この演習について
+
+4章で学んだ知識(非同期処理、エラーハンドリング、ルーティング、API Routes/Server Actions)を組み合わせて、「ケーキ人気投票ランキング」というミニ機能を作る。
+
+一点、正直に断っておくと、**外部APIを呼び出すという処理は、実は電車・ケーキどちらのプロトタイプにも実例が存在しない**(2つとも、サーバーと一切通信しない自己完結型のゲームだったため)。そのため今回は、4章の頭で確認した実在の`actions.ts`のパターン(早期リターンでのバリデーション、`revalidatePath`)を土台にしつつ、ケーキの世界観に当てはめて新規に組み立てる形になる。
+
+## 要件
+
+### 1. API Route:`/api/cakes/popularity`(4-7)
+
+`src/app/api/cakes/popularity/route.ts`に、GETリクエストを受けて、以下のようなダミーデータをJSONで返す関数を作成する:
+
+```ts
+interface CakePopularity {
+  cakeKind: "shortcake" | "chocolate"
+  votes: number
+}
+```
+
+（実際のデータベースは使わず、固定の配列を返すだけでよい。例:`[{ cakeKind: "shortcake", votes: 12 }, { cakeKind: "chocolate", votes: 8 }]`)
+
+### 2. ページルーティング:`/cakes/ranking`(4-6)
+
+`src/app/cakes/ranking/page.tsx`に、上記のAPI Routeを`fetch`で呼び出し、結果を`.sort()`(3章で学んだ、降順ソート)で並び替えてから、`.map()` + `key`(2章)で一覧表示するページを作成する。`fetch`は`await`(4-3)を使って結果を待つこと。
+
+`fetch`が失敗する可能性も考え、`try`/`catch`(4-4)で囲み、失敗した場合は「ランキングを取得できませんでした」という表示を出すこと。
+
+### 3. Server Action:`voteForCake`(4-7)
+
+`"use server"`をつけた`voteForCake(cakeKind: string)`という関数を作成する。`actions.ts`の`updateExerciseStatus`と同じように、以下の早期リターンパターンを踏襲すること:
+
+```ts
+const VALID_CAKE_KINDS = ["shortcake", "chocolate"];
+
+export async function voteForCake(cakeKind: string) {
+  if (!VALID_CAKE_KINDS.includes(cakeKind)) {
+    return; // 不正な値なら、何もせず処理を終える
+  }
+
+  // (実際の投票処理はダミーでよい。console.logで代用してもよい)
+
+  revalidatePath("/cakes/ranking");
+}
+```
+
+## クリア条件
+
+- API Routeが正しくJSONを返すこと
+- `/cakes/ranking`ページが、`fetch` + `await`でAPIを呼び出し、結果を一覧表示すること
+- `fetch`の失敗が`try`/`catch`でハンドリングされていること
+- `voteForCake`が、`actions.ts`と同じ早期リターンのパターンでバリデーションを行っていること
+- `revalidatePath`が正しく呼ばれていること
+
+---
+
+これで4章の実装部分は完了。次はレビュー演習に進んで、4章、そして教材全体が完成する。

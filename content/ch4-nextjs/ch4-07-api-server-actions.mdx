@@ -1,0 +1,115 @@
+---
+exercise_id: "ch4-07-api-server-actions"
+title: "API Routes / Server Actions"
+order: 7
+---
+
+## 説明
+
+前のレッスンで、「フォルダ構造がURLになる」というルーティングを扱った。今度は、「ブラウザから、サーバー側の処理を安全に呼び出す」方法を扱う。Next.jsには主に2つの方法がある。
+
+**API Routes** — 昔ながらの「専用のURLを1つ作って、そこにリクエストを送る」方式:
+
+```ts
+// src/app/api/hello/route.ts → "/api/hello" というURLでアクセスできる
+export async function GET() {
+  return Response.json({ message: "こんにちは" });
+}
+```
+
+**Server Actions** — より新しい方式で、「サーバー側だけで実行される関数」を、まるで普通の関数のようにコンポーネントから直接呼び出せる仕組み:
+
+```ts
+"use server"; // このファイルの中身は、必ずサーバー側で実行される、という宣言
+
+export async function saveName(name: string) {
+  // ここはサーバー側でしか動かないので、DBへの書き込みなどを安全にできる
+}
+```
+
+ファイルの先頭に`"use server"`と書くことで、「このファイルの関数は、ブラウザ側のコードから直接呼び出されても、実際にはサーバー上で実行される」という特別な仕組みが有効になる。前に扱った`process.env`の話(サーバー専用の環境変数はブラウザから読めない)とも関係していて、Server Actionsの中でだけ、秘密の情報や、データベースへの直接アクセスを安全に扱える。
+
+## 実際のプロジェクトでの例
+
+前に渡してもらった`actions.ts`は、まさにこのServer Actionsの実例:
+
+```ts
+"use server";
+
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+// ...
+
+export async function updateExerciseStatus(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const teamMember = await getTeamMemberByUserId(supabase, user.id);
+  if (!teamMember) {
+    redirect("/onboarding");
+  }
+
+  const exerciseId = String(formData.get("exerciseId") ?? "");
+  const status = String(formData.get("status") ?? "");
+
+  if (!exerciseId || !EXERCISE_STATUSES.includes(status as ExerciseStatus)) {
+    return;
+  }
+
+  await upsertExerciseProgress(supabase, {
+    teamMemberId: teamMember.id,
+    exerciseId,
+    status: status as ExerciseStatus,
+  });
+
+  revalidatePath("/");
+}
+```
+
+これは、前のレッスンで扱った知識が総動員されてる:
+
+- `"use server"`(このレッスンの主役)
+- `await`の連続(4-3で扱った非同期処理)
+- 早期リターン(`if (!user) { redirect(...) }`)(4-4で扱った、try/catchではなくガード節でのエラー対応)
+- **`FormData`**——HTMLの`<form>`から送信されたデータを受け取るための、ブラウザ標準のオブジェクト。`formData.get("exerciseId")`のように、キー名を指定して値を取り出す
+- **`status as ExerciseStatus`**——1章で学んだunion typeへの型アサーション(「この文字列は、実はこのunion typeのどれかのはず」とTypeScriptに伝える書き方)。ただし直前に`EXERCISE_STATUSES.includes(status as ExerciseStatus)`で実際にその文字列が正しい選択肢に含まれてるかチェックしてからアサーションしてる、という安全な使い方になってる
+
+最後の**`revalidatePath("/")`**は、「`/`(トップページ)に表示されてるデータは古くなった可能性があるので、次に表示する時は最新のデータを取り直してください」とNext.jsに伝える関数。進捗ボードで、演習のステータスを切り替えた後に画面がすぐ最新の状態に更新されるのは、この一行のおかげ。
+
+同じファイルの`signOut`関数は、よりシンプルな例:
+
+```ts
+export async function signOut() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/login");
+}
+```
+
+「ログアウトして、ログイン画面にリダイレクトする」という、たった3行の処理だけど、`await`・Supabase呼び出し・`redirect`という、このミニアプリの根幹を支える要素が詰まってる。
+
+## コラム:Java・Railsとの対応
+
+### Java
+
+API Routesは、Spring MVCの`@RestController`(URLを指定してJSONを返す)にかなり近い発想。一方Server Actionsは、Javaの伝統的な設計にはあまり対応するものがない——「ブラウザ側のコードから、サーバー関数を直接呼んでるように書けるのに、実際には安全にサーバー側で実行される」という仕組みは、Next.js(および類似の最新フレームワーク)に比較的特有の考え方。
+
+### Rails
+
+API RoutesはRailsのControllerアクション(`respond_to :json`)に近い。Server Actionsは、Railsのフォーム送信+コントローラーのアクション処理を、1つの関数にまとめたようなものとイメージすると近いかもしれない。`formData.get("exerciseId")`は、Railsで言う`params[:exercise_id]`に近い役割。ただしRailsは「フォーム送信→別URLへのPOSTリクエスト→コントローラーで受け取る」という明確に分かれたステップを踏むのに対し、Server Actionsは「関数呼び出し」という形でその境界を隠してくれている、という違いがある。
+
+## 演習
+
+`"use server"`をつけた`incrementCounter(currentCount: number): Promise<number>`というServer Actionを作成してください(中身は`currentCount + 1`を返すだけでOK、実際のDB操作は不要)。`async`関数として定義すること。
+
+### クリア条件
+
+- ファイルの先頭に`"use server"`が書かれていること
+- `async`関数として定義されていること
+- 引数に1を足した値を返すこと

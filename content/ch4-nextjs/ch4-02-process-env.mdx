@@ -1,0 +1,54 @@
+---
+exercise_id: "ch4-02-process-env"
+title: "process.envと環境変数"
+order: 2
+---
+
+## 説明
+
+`.env.local`のようなファイルに書いた値(前にSupabaseのURLやAPIキーを書いたやつ)は、コードの中で`process.env`というオブジェクトを通じて読み取れる。
+
+```ts
+const apiKey = process.env.SOME_API_KEY;
+```
+
+環境変数を使う理由は、「秘密の値(APIキーなど)や、環境ごとに変わる値(開発用/本番用のURLなど)を、コードに直接書き込まないため」。コードはGitで管理され、みんなで共有されるものだけど、環境変数は`.gitignore`で除外されて各自のPC/サーバーだけが持つ、という前提で運用する。
+
+Next.jsには、ここに独自のルールが1つある。前に`.env.local`に書いた変数名を思い出してほしい:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_xxxxx
+```
+
+**`NEXT_PUBLIC_`から始まる変数だけが、ブラウザ側(クライアント)のコードからも読める**。それ以外の変数は、サーバー側のコード(Server Actions、API Routesなど)からしか読めない。これは意図的な設計で、「うっかりブラウザに秘密の値が漏れる」事故を防ぐための仕組み。だからこそ、前に「publishable keyは公開されても安全」と説明したものには`NEXT_PUBLIC_`がついていて、Secret keyのような、絶対に漏らしてはいけない値にはこのprefixをつけない、という使い分けをする。
+
+## 実際のプロジェクトでの例
+
+`src/lib/supabase/client.ts`(ブラウザ側で使うSupabaseクライアント)は、`NEXT_PUBLIC_`つきの変数を読んでいるはず:
+
+```ts
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+```
+
+一方、渡してもらった`actions.ts`のようなServer Action(`"use server"`がついたファイル)はサーバー側でしか実行されないコードだから、もし将来Secret keyのような、`NEXT_PUBLIC_`がついてない変数を使うことになっても安全、ということになる。
+
+## コラム:Java・Railsとの対応
+
+### Java
+
+`System.getenv("SOME_API_KEY")`が、`process.env`とほぼ同じ役割。ただしJavaには「ブラウザ側/サーバー側」という区別自体がない(Javaのコードは基本的にサーバー側でしか動かないため)。この「クライアントとサーバーの境界を意識する」という発想は、Webフロントエンドの技術特有のもの。
+
+### Rails
+
+`ENV["SOME_API_KEY"]`(または`Rails.application.credentials`)が近い。Railsは基本的にサーバーサイドのフレームワークなので、「ブラウザに公開していい変数か」を区別する`NEXT_PUBLIC_`のような仕組みは不要(ビューに変数を渡す時点で、開発者が意識的に選んで渡すことになる)。Next.jsのように「ファイル1つの中に、サーバー用コードとクライアント用コードが混在しうる」という構造自体が、Railsの伝統的なMVCとは前提が異なる部分。
+
+## 演習
+
+「もし`NEXT_PUBLIC_`をつけ忘れた環境変数を、うっかりブラウザ側のコンポーネントで読もうとしたらどうなるか」を考えてみてください(実際に動かす必要はなく、予想を書くだけでOK)。なぜそうなるか、このレッスンの内容をもとに説明してください。
+
+### クリア条件
+
+- 「`undefined`になる(値が読み取れない)」という結論に到達できていること
+- その理由を、`NEXT_PUBLIC_`の仕組みをもとに自分の言葉で説明できること

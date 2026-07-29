@@ -1,0 +1,54 @@
+---
+exercise_id: "ch4-01-package-json"
+title: "package.jsonとnpm scriptsの読み方"
+order: 1
+---
+
+## 説明
+
+`package.json`は、プロジェクトの設定情報が全部詰まった、いわば「プロジェクトの身分証明書」。依存パッケージの一覧、プロジェクト名、そして「よく使うコマンドの短縮名」が書かれてる。
+
+```json
+{
+  "name": "project-scaffold",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "next": "^16.2.0",
+    "react": "^19.2.0"
+  }
+}
+```
+
+`"scripts"`の中に書かれてるのが、npm scripts。`npm run dev`と打つと、実際には`next dev`というコマンドが実行される。短くて覚えやすい名前を、実際の(長い・複雑な)コマンドに紐付けておくという仕組み。
+
+`"dependencies"`は、このプロジェクトが依存してる外部パッケージの一覧。1章でimportしてきた`react`とか、Supabaseのライブラリとかが、実はここに全部登録されてる。`^16.2.0`のような表記はバージョンを表していて、`^`は「メジャーバージョンが変わらない範囲で、最新版を使う」という意味。
+
+## 実際のプロジェクトでの例
+
+前に一緒に立ち上げたプラットフォームの`package.json`にも、`npm run dev`(開発サーバー起動)、`npm run build`(本番用にビルド)といったscriptsが必ず入ってる。今まで何度も打ってきた`npm run dev`は、実はこの`package.json`の設定に依存した、プロジェクトごとに定義されたコマンドだったということになる。
+
+`dependencies`には、Sandpackを導入した時に増えた`@codesandbox/sandpack-react`のような、「そのプロジェクトで実際に使ってるライブラリの一覧」が全部並んでる。前にSupabaseの型を生成するコマンド(`supabase gen types`)を実行したのも、`supabase`というパッケージが依存関係に含まれてたから。
+
+## コラム:Java・Railsとの対応
+
+### Java
+
+Javaでの依存関係管理は、`pom.xml`(Maven)や`build.gradle`(Gradle)が近い役割を果たす。「このプロジェクトはこのライブラリのこのバージョンに依存してる」という情報を1箇所にまとめる、という考え方は共通してる。
+
+### Rails
+
+RailsでいうところのGemfile(依存パッケージの一覧)とほぼ同じ役割。`bundle exec rails server`のように、Railsにも「決まったコマンドを実行する」という文化はあるけど、npm scriptsのように任意の短縮名を自由に定義できるという柔軟さは、`package.json`の方が高い(RailsのGemfileには「短縮コマンドを定義する」機能自体はない)。
+
+## 演習
+
+`package.json`の`scripts`に、`"typecheck": "tsc --noEmit"`という新しいコマンドを追加してください。追加後、`npm run typecheck`で型チェックだけを実行できることを確認してください。
+
+### クリア条件
+
+- `scripts`に`typecheck`が正しく追加されていること
+- `npm run typecheck`で型チェックが実行できること

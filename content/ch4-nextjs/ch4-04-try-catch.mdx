@@ -1,0 +1,112 @@
+---
+exercise_id: "ch4-04-try-catch"
+title: "try/catchとエラーハンドリング"
+order: 4
+---
+
+## 説明
+
+処理の途中でエラーが起きる可能性がある場合、そのエラーで処理全体が止まってしまわないように`try`/`catch`で囲む。
+
+```ts
+try {
+  const data = JSON.parse(someString); // 失敗するかもしれない処理
+  console.log(data);
+} catch (error) {
+  console.log("パースに失敗しました", error);
+}
+```
+
+`try`の中の処理でエラーが投げられると、そこで処理が中断され、`catch`の中身が実行される。`catch (error)`の`error`には、実際に起きたエラーの情報が入る。
+
+エラーの内容を使わない場合は、`catch`の後の`(error)`を省略できる:
+
+```ts
+try {
+  window.localStorage.setItem("key", "value");
+} catch {
+  // エラーの中身を見なくても、「失敗したらこうする」だけ書けばいい場合
+}
+```
+
+## try/catchと「早期リターン」の使い分け
+
+4章の冒頭で見た`actions.ts`には、実は`try`/`catch`が1つも使われてなかった。代わりに使われてたのが早期リターン:
+
+```ts
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+
+if (!user) {
+  redirect("/login");
+}
+```
+
+これは、「エラーが投げられる」というより「正常に処理は終わったけど、想定外の状態(ユーザーがいない)だった」というケース。こういう場合は`try`/`catch`ではなく、「条件をチェックして、ダメならそこで処理を止める」という早期リターンの方が自然。
+
+**使い分けの目安**:
+
+- 「処理が失敗して、例外(エラー)が投げられる可能性がある」 → `try`/`catch`
+- 「処理自体は正常に終わるが、その結果が期待と違う可能性がある」 → 早期リターン(`if`文でのチェック)
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`App.tsx`に、`try`/`catch`の実例がある:
+
+```ts
+try {
+  return window.localStorage.getItem(tutorialStorageKey) !== 'true'
+} catch {
+  return true
+}
+```
+
+これは「チュートリアルをもう見たかどうかを、ブラウザの`localStorage`(保存領域)から読み取る」処理。`localStorage`は、プライベートブラウジングモードなど、特定の状況でアクセスするとエラーを投げることがある。そのため、`try`で囲んでおき、もし失敗したら`catch`で「デフォルトでチュートリアルを表示する(`true`を返す)」という安全な代替処理をしてる。
+
+同じファイルの別の場所にも、`localStorage`への書き込みを`try`/`catch`で守ってる例がある:
+
+```ts
+try {
+  window.localStorage.setItem(tutorialStorageKey, 'true')
+} catch {
+  // The tutorial still closes when browser storage is unavailable.
+}
+```
+
+コメントにある通り、「保存に失敗しても、チュートリアル自体は閉じる(アプリの動作は止めない)」という意図。`localStorage`のような、ブラウザ環境に依存して失敗しうる処理は、`try`/`catch`で守るのが定石、ということがこの2つの実例から分かる。
+
+## コラム:Java・Railsとの対応
+
+### Java
+
+```java
+try {
+    int result = riskyOperation();
+} catch (Exception e) {
+    System.out.println("エラー: " + e.getMessage());
+}
+```
+
+構文・考え方ともにほぼ同じ。Javaには「チェック例外(catchを強制される)」という仕組みもあるけど、TypeScript/JSにはそれがなく、どのエラーをcatchすべきかは、開発者の判断に委ねられるという違いがある。
+
+### Rails
+
+```ruby
+begin
+  result = risky_operation
+rescue => e
+  puts "エラー: #{e.message}"
+end
+```
+
+Rubyの`begin`/`rescue`が`try`/`catch`に相当する。発想は同じだけど、キーワードが違う(`begin`/`rescue`/`ensure` vs `try`/`catch`/`finally`)。
+
+## 演習
+
+`safeJsonParse(text: string)`という関数を作成してください。`JSON.parse(text)`を`try`/`catch`で囲み、パースに成功すれば結果を返し、失敗すれば`null`を返すようにしてください。
+
+### クリア条件
+
+- `try`/`catch`が正しく使われていること
+- パース失敗時に`null`が返ること

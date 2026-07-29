@@ -1,0 +1,83 @@
+---
+exercise_id: "ch4-03-promise-async-await"
+title: "Promiseとasync/await"
+order: 3
+---
+
+## 説明
+
+これまでのレッスンで扱ってきた処理は、基本的に「呼んだら、すぐに結果が返ってくる」ものだった。でも、データベースへの問い合わせ、外部APIの呼び出しのような処理は、結果が返ってくるまで時間がかかる。この「今すぐ結果が分からないけど、いずれ結果が返ってくる」という値を表すのが**Promise**。
+
+```ts
+function fetchData(): Promise<string> {
+  // いずれ文字列が返ってくる「約束」
+}
+```
+
+Promiseから実際の値を取り出すには、**`await`**を使う。`await`をつけると、「その処理が終わるまで待ってから、次の行に進む」という書き方ができる:
+
+```ts
+async function main() {
+  const data = await fetchData(); // 終わるまで待つ
+  console.log(data); // 待った後の値が使える
+}
+```
+
+`await`を使う関数は、必ず`async`をつける必要があるというルールがある。`async function main() { ... }`のように。
+
+複数の`await`を順番に並べることで、「非同期の処理を、まるで同期処理のように上から下に読める」というのが`async`/`await`の一番の利点(これがない時代は、コールバック関数を何重にもネストさせる必要があり、読みにくかった)。
+
+## 実際のプロジェクトでの例
+
+前に渡してもらった`actions.ts`から:
+
+```ts
+export async function updateExerciseStatus(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const teamMember = await getTeamMemberByUserId(supabase, user.id);
+  // ...
+}
+```
+
+`updateExerciseStatus`関数自体が`async function`になっていて、中で3回`await`が使われてる:
+
+1. `await createClient()` — Supabaseクライアントの準備を待つ
+2. `await supabase.auth.getUser()` — 今ログインしてるユーザーの情報を、Supabaseに問い合わせて待つ
+3. `await getTeamMemberByUserId(supabase, user.id)` — データベースから、該当するチームメンバーの情報を問い合わせて待つ
+
+この3つは順番に依存関係がある(クライアントができてからユーザー情報を取れる、ユーザーIDが分かってからチームメンバー情報を取れる)。だから上から順番に`await`で待つという書き方が、まさに適してる。
+
+`const { data: { user } } = await supabase.auth.getUser();`は、1章で学んだ分割代入が、ネストした形(オブジェクトの中のオブジェクトを、一気に取り出す)で使われてる例。`await`で待った結果のオブジェクトが`{ data: { user: {...} } }`という形をしてるので、`user`だけを一気に取り出してる。
+
+## コラム:Java・Railsとの対応
+
+### Java
+
+```java
+CompletableFuture<String> future = fetchDataAsync();
+String data = future.get(); // 完了を待つ
+```
+
+Javaにも`CompletableFuture`という、非同期処理を表す仕組みがある。ただJavaでは伝統的に同期的な処理(スレッドをブロックして待つ)がベースで、非同期処理は意識的に選択する場面が多い。JS/TSは逆に、I/O(通信やファイル操作)が絡む処理は基本的に非同期という設計思想になっていて、`async`/`await`がかなり日常的に登場する。
+
+### Rails
+
+Railsの標準的なコントローラーのアクションは、基本的に同期処理として書かれる(`user = User.find(params[:id])`のように、`await`のようなキーワードなしでそのまま値が返ってくる)。これはRailsが「1リクエストにつき1スレッドが専有して処理する」という前提のフレームワークだから。JS(Node.js)は逆に、1つのスレッドで大量のリクエストを効率的にさばくために、非同期処理が前提の設計になっている。この違いは、これまで慣れてきたRailsの感覚と一番ギャップを感じる部分かもしれない。
+
+## 演習
+
+`getUserProfile(userId: string)`という`async`関数を作成してください。中で`fetchUser(userId)`(仮の関数、実装は`await new Promise((resolve) => setTimeout(() => resolve({ id: userId, name: "のりまき" }), 1000))`のようなダミーでOK)を`await`し、取得したユーザー情報の`name`だけを返すようにしてください。
+
+### クリア条件
+
+- `getUserProfile`が`async`関数として定義されていること
+- 中で正しく`await`が使われていること
+- `name`だけが返されること

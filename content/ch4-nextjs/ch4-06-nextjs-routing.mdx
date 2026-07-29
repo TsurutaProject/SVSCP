@@ -1,0 +1,60 @@
+---
+exercise_id: "ch4-06-nextjs-routing"
+title: "Next.jsのルーティング基礎(App Router)"
+order: 6
+---
+
+## 説明
+
+Next.jsのApp Routerでは、フォルダ構造が、そのままURLの構造になるという仕組みがある。`src/app/`配下に置いたフォルダとファイルが、自動的にルーティング(どのURLで、どの画面を表示するか)として認識される。
+
+```
+src/app/
+├── page.tsx           → "/" (トップページ)
+├── login/
+│   └── page.tsx       → "/login"
+└── onboarding/
+    └── page.tsx       → "/onboarding"
+```
+
+`page.tsx`という決まった名前のファイルが、そのフォルダに対応するURLの中身になる。これまでの1〜3章で作ってきたコンポーネントは「部品」だったけど、`page.tsx`は「その部品を使って、1つのURLの画面全体を組み立てる」という役割を持つ。
+
+さらに、`layout.tsx`という特別なファイルを置くと、「そのフォルダ以下の全ページで共通して使われる外枠(ヘッダー、ナビゲーションなど)」を定義できる。
+
+## 実際のプロジェクトでの例
+
+前にClaude Codeが実装したプラットフォームには、まさにこの構造がそのまま使われてる:
+
+```
+src/app/
+├── page.tsx           → "/" (ログイン状態に応じてダッシュボード/リダイレクト)
+├── login/
+│   └── page.tsx       → "/login" (メール+パスワードでログイン/新規登録)
+├── onboarding/
+│   └── page.tsx       → "/onboarding" (初回ログイン時の表示名入力)
+└── sandbox-test/
+    └── page.tsx       → "/sandbox-test" (Sandpackの検証ページ)
+```
+
+`http://localhost:3000/sandbox-test`にアクセスすると、`src/app/sandbox-test/page.tsx`の中身が表示される、という対応関係になってる。前に自分でブラウザから`/sandbox-test`にアクセスしてSandpackの動作確認をしたのは、まさにこの仕組みのおかげ。
+
+フォルダ名を変えれば、URLも変わる。もし将来、進捗ボードを`/dashboard`というURLにしたければ、`src/app/dashboard/page.tsx`というフォルダとファイルを作るだけでいい——ルーティングの設定ファイルを別途書く必要がないのが、この方式の大きな特徴。
+
+## コラム:Java・Railsとの対応
+
+### Java
+
+Java(Spring MVCなど)では、`@GetMapping("/login")`のように、アノテーションでURLとコードを明示的に紐付けるのが一般的。「URLとコードの対応が、フォルダ構造から自動で決まる」というNext.jsのApp Routerの発想とは、かなり違うアプローチ。
+
+### Rails
+
+Railsは`config/routes.rb`に、`get "/login", to: "sessions#new"`のように、すべてのルーティングを1つのファイルに明示的に書く。Next.jsのApp Routerは逆に、ファイル・フォルダの配置そのものがルーティング定義を兼ねるため、`routes.rb`のような集中管理ファイルが存在しない。「どこに何のURLがあるか一覧で見たい」ときは、Railsなら`routes.rb`を見ればいいが、Next.jsでは`src/app/`のフォルダ構造そのものを見る、という違いがある。慣れるまでは、Railsの方が「一覧性」の面で分かりやすいと感じるかもしれない。
+
+## 演習
+
+`/profile`というURLで表示される、`ProfilePageTest`という名前のシンプルなページ(「プロフィールページ(テスト)」という`<h1>`を表示するだけでOK)を作成してください。どのパスに、どんな名前のファイルを作るべきか、このレッスンの内容から考えて答えてください。
+
+### クリア条件
+
+- `src/app/profile/page.tsx`という正しいパスにファイルを作成できていること
+- `<h1>`が正しく表示されること

@@ -1,6 +1,7 @@
 import type { ChapterMeta } from "@/lib/curriculum/types";
 import { ch1Exercises } from "../../../content/ch1-js-ts/_index";
 import { ch2Exercises } from "../../../content/ch2-react/_index";
+import { ch4Exercises } from "../../../content/ch4-nextjs/_index";
 
 // content/ にまだ実データがない章は仮の演習リストを置いている。
 // 実際のMDXを追加した章は、その章の content/{章フォルダ}/_index.ts から
@@ -39,10 +40,6 @@ export const chapters: ChapterMeta[] = [
   {
     id: "ch4",
     title: "非同期+Next.js",
-    exercises: [
-      { id: "ch4-01-fetch-basics", title: "fetchの基本", order: 1 },
-      { id: "ch4-02-app-router-basics", title: "App Routerの基本", order: 2 },
-      { id: "ch4-03-server-actions-basics", title: "Server Actionsの基本", order: 3 },
-    ],
+    exercises: ch4Exercises,
   },
 ];
