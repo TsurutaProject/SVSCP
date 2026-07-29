@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Sandpackの採点用に生成した演習ファイル。Sandpack側の独立した環境で
+    // 実行される想定のため、このプロジェクトのlint対象外にする。
+    "content/**/*.solution.ts",
+    "content/**/*.test.ts",
   ]),
 ]);
 

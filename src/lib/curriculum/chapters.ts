@@ -1,4 +1,4 @@
-import type { ChapterMeta } from "@/lib/curriculum/types";
+import type { ChapterMeta, ExerciseMeta } from "@/lib/curriculum/types";
 import { ch0Exercises } from "../../../content/ch0-html-css/_index";
 import { ch1Exercises } from "../../../content/ch1-js-ts/_index";
 import { ch2Exercises } from "../../../content/ch2-react/_index";
@@ -35,3 +35,11 @@ export const chapters: ChapterMeta[] = [
     exercises: ch4Exercises,
   },
 ];
+
+export function findExerciseById(exerciseId: string): ExerciseMeta | null {
+  for (const chapter of chapters) {
+    const exercise = chapter.exercises.find((e) => e.id === exerciseId);
+    if (exercise) return exercise;
+  }
+  return null;
+}

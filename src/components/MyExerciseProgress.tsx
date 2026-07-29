@@ -1,7 +1,9 @@
+import Link from "next/link";
 import type { ChapterMeta } from "@/lib/curriculum/types";
 import type { Database } from "@/lib/supabase/database.types";
 import type { ExerciseStatus } from "@/lib/supabase/queries/exerciseProgress";
 import { updateExerciseStatus } from "@/app/actions";
+import { isGraded } from "@/lib/curriculum/grading";
 
 type ExerciseProgress = Database["public"]["Tables"]["exercise_progress"]["Row"];
 
@@ -37,13 +39,16 @@ export function MyExerciseProgress({ chapters, progressRows }: MyExerciseProgres
 
               return (
                 <li key={exercise.id}>
-                  <form action={updateExerciseStatus}>
+                  <form action={updateExerciseStatus} style={{ display: "inline" }}>
                     <input type="hidden" name="exerciseId" value={exercise.id} />
                     <input type="hidden" name="status" value={nextStatus(status)} />
                     <button type="submit">
                       {exercise.title}: {STATUS_LABELS[status]}
                     </button>
                   </form>
+                  {isGraded(exercise.id) && (
+                    <Link href={`/exercises/${exercise.id}`}>採点にチャレンジ</Link>
+                  )}
                 </li>
               );
             })}
