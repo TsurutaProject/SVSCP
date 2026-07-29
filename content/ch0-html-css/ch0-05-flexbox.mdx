@@ -1,0 +1,61 @@
+---
+exercise_id: "ch0-05-flexbox"
+title: "Flexboxでレイアウトを組む"
+order: 5
+---
+
+## 説明
+
+Flexboxは、要素を横並び、または縦並びに、柔軟に配置するためのCSSの仕組み。親要素に`display: flex`を指定すると、その直接の子要素たちが自動的に1列に並ぶ。
+
+```css
+.container {
+  display: flex;
+  justify-content: space-between; /* 横方向の配置 */
+  align-items: center;            /* 縦方向の配置 */
+  gap: 12px;
+}
+```
+
+- **`display: flex`** — Flexboxを有効にする(これがないと、他のFlex関連プロパティは効かない)
+- **`justify-content`** — 「主軸」方向(デフォルトは横)の配置。`space-between`(両端に寄せて、間を均等に空ける)、`center`(中央寄せ)、`flex-start`/`flex-end`(端寄せ)などがよく使われる
+- **`align-items`** — 「交差軸」方向(デフォルトは縦)の配置。`center`(縦方向の中央揃え)がよく使われる
+- **`flex-direction`** — 並べる方向。デフォルトは`row`(横並び)、`column`にすると縦並びに変わる
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`styles/game.css`から:
+
+```css
+.game-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 116px;
+}
+```
+
+これはゲームのヘッダー部分(スコアや設定ボタンなどが並ぶ場所)。`justify-content: space-between`で「両端に要素を寄せて、間を均等に空ける」、`align-items: flex-end`で「縦方向は下端に揃える」という配置になってる。
+
+さらに、画面サイズに応じて配置を変える、レスポンシブ対応の実例もある:
+
+```css
+@media (max-width: 960px) {
+  .game-header {
+    align-items: start;
+    flex-direction: column;
+  }
+}
+```
+
+`@media (max-width: 960px)`は、「画面の幅が960px以下の場合だけ、この中のスタイルを適用する」という条件分岐(2章で学んだJSXの`&&`条件レンダリングの、CSS版のようなもの、と考えると理解しやすいかもしれない)。画面が狭くなったら、`flex-direction: column`で横並びから縦並びに切り替える、という、スマホ対応でよく使われるテクニック。
+
+## 演習
+
+`.toolbar`というクラスに`display: flex`を指定し、子要素が左右の両端に配置される(`justify-content`)ようにしてください。さらに、画面幅が`600px`以下になったら`flex-direction: column`に切り替わる(`@media`)ようにしてください。
+
+### クリア条件
+
+- `justify-content`で両端配置が正しく実装されていること
+- `@media`で画面幅に応じた切り替えが正しく実装されていること

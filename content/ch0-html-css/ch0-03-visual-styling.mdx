@@ -1,0 +1,67 @@
+---
+exercise_id: "ch0-03-visual-styling"
+title: "見た目を整える(color, background, border-radius, box-shadowなど)"
+order: 3
+---
+
+## 説明
+
+CSSは、HTML要素の見た目を指定する言語。基本の書き方:
+
+```css
+.card {
+  color: #333333;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  font-weight: 700;
+}
+```
+
+- **`color`** — 文字の色
+- **`background`** — 背景の色(または画像)
+- **`border-radius`** — 角の丸み。数値が大きいほど丸くなる。`999px`のような極端に大きい値を指定すると、完全な円形(ピル型)になる
+- **`box-shadow`** — 影。`0 4px 8px rgba(0,0,0,0.1)`のように「横方向のずれ、縦方向のずれ、ぼかしの強さ、色」の順で指定する
+- **`font-weight`** — 文字の太さ。`400`が標準、`700`が太字、`800`はさらに太い
+
+色の指定方法はいくつかあるけど、`#ffffff`(16進数、通称カラーコード)と`rgba(0,0,0,0.1)`(赤・緑・青の数値+透明度)の2つが特によく使われる。`rgba`の最後の値(アルファ値、0〜1)が透明度で、影や半透明の背景を作るときに便利。
+
+## 実際のプロトタイプでの例
+
+Train_Proto-Typeの`App.css`から、ボタンのスタイル:
+
+```css
+.main-button {
+  border: 0;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #ef6c00;
+  font-size: 26px;
+  font-weight: 800;
+  box-shadow: 0 6px 0 #bf4f00;
+}
+```
+
+`border-radius: 999px`で完全な丸型ボタンにしてる。`box-shadow: 0 6px 0 #bf4f00`は、ぼかしなし(3番目の値が`0`)で、下に単色の影を落とすことで、ボタンが立体的に見えるという、よくあるデザインテクニック。ボタンを押した時、この影が消えたり短くなったりすると「押し込まれた」ような視覚効果を演出できる。
+
+カード全体のスタイルにも、同じ考え方が使われてる:
+
+```css
+.something {
+  padding: 40px;
+  background: #ffffff;
+  border: 3px solid #263238;
+  border-radius: 20px;
+  box-shadow: 0 18px 50px rgb(38 50 56 / 16%);
+}
+```
+
+`rgb(38 50 56 / 16%)`は、`rgba`の少し新しい書き方(スペース区切り+`/`で透明度を指定)。ぼかしを強め(`50px`)にして、影を柔らかく大きく見せてる。影の強さ・広がり方を変えるだけで、「浮いてる感じ」の強弱を演出できる、というのがこの例から読み取れる。
+
+## 演習
+
+`.profile-card`というクラスに、白い背景・角丸12px・薄い影(`box-shadow: 0 2px 6px rgba(0,0,0,0.1)`程度)・太字の文字(`font-weight: 600`)を指定するCSSを書いてください。
+
+### クリア条件
+
+- `background`, `border-radius`, `box-shadow`, `font-weight`が正しく指定されていること

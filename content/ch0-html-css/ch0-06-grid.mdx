@@ -1,0 +1,73 @@
+---
+exercise_id: "ch0-06-grid"
+title: "Gridでレイアウトを組む"
+order: 6
+---
+
+## 説明
+
+Gridは、Flexboxが「1方向(横または縦)の並び」を得意とするのに対し、縦横2方向を同時に、格子状に組むのに向いてるCSSの仕組み。
+
+```css
+.container {
+  display: grid;
+  grid-template-columns: 200px 1fr 200px;
+  gap: 16px;
+}
+```
+
+- **`display: grid`** — Gridを有効にする
+- **`grid-template-columns`** — 列の数と幅を指定する。`200px 1fr 200px`は「左200px・中央は残り全部・右200px」という3列レイアウト
+- **`1fr`** — 「残りのスペースを分け合う単位」(fraction=割合)。`1fr 1fr`なら2等分、`1fr 2fr`なら1:2の比率で分ける
+
+**`minmax(最小, 最大)`** という書き方もよく使われる:
+
+```css
+grid-template-columns: minmax(150px, 300px) 1fr;
+```
+
+これは「最小150px、最大300pxの範囲で、画面サイズに応じて伸び縮みする列」という意味。「絶対に小さくなりすぎない、かつ大きくなりすぎない」列を作りたい時に使う。
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`styles/game.css`から、ゲーム全体の3カラムレイアウト:
+
+```css
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(150px, 190px) minmax(360px, 1fr) minmax(310px, 360px);
+  gap: 18px;
+  max-width: 1240px;
+  margin: 0 auto;
+  align-items: start;
+}
+```
+
+3つの`minmax()`が並んでる:「左パネル(150〜190px)、中央のケーキ表示エリア(360px以上で残りを埋める)、右パネル(310〜360px)」という構成。`max-width: 1240px`(コンテナ自体の最大幅)と`margin: 0 auto`(左右のmarginを`auto`にすると、要素が中央寄せになる、という定番テクニック)が組み合わさって、「画面全体に対して中央に、程よい幅で配置される」レイアウトになってる。
+
+`.left-panel`のように、Gridは「格子状の配置」だけでなく、単純に縦方向に並べる用途でも使われる:
+
+```css
+.left-panel {
+  display: grid;
+  gap: 14px;
+}
+```
+
+`grid-template-columns`を指定してない場合、Gridは1列(縦積み)として振る舞う。「Flexboxの`flex-direction: column`と同じ結果を、Gridでも実現できる」ということも知っておくと、実際のコードを読む時に混乱しにくい。
+
+## 使い分けの目安
+
+- **Flexbox**:1方向の並び、要素数が可変(増減する)場合に強い
+- **Grid**:2次元の格子状レイアウト、列幅をきっちり定義したい場合に強い
+
+実際のプロジェクトでは、両方を組み合わせて使うのが普通(今回見た`.game-layout`はGridで全体の3カラムを組み、その中の`.score-board`はFlexboxで要素を横並びにする、というように)。
+
+## 演習
+
+`.dashboard`というクラスに、`display: grid`と`grid-template-columns: minmax(200px, 250px) 1fr`を指定し、「左に固定幅寄りのサイドバー、右に残り全部のメインエリア」という2カラムレイアウトを作ってください。
+
+### クリア条件
+
+- `grid-template-columns`が`minmax()`を使って正しく指定されていること
+- 2カラムのレイアウトが正しく表示されること

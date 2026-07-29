@@ -1,0 +1,78 @@
+---
+exercise_id: "ch0-09-capstone"
+title: "総合演習:ケーキゲームのスコアボードを再現する"
+order: 9
+---
+
+## この演習について
+
+ch0で学んだ内容(セレクタ、CSS変数、余白とサイズ、Flexbox、position、`@keyframes`)を全部使って、Cake-Gameの実際のスコアボードを、HTML+CSSだけで再現する。JS/TSは一切使わない、純粋なHTML/CSSの総仕上げ。
+
+## 完成イメージ
+
+横に並んだ複数のスコアカード(「得点」「コンボ」など)があり、それぞれのカードには軽い影と角丸がついている。カードの右下には、コンボ数を示す小さなバッジが重ねて表示され、ページ読み込み時に軽く弾むアニメーションをする。
+
+## 要件
+
+### 1. CSS変数の定義(0-2)
+
+`:root`に、以下のCSS変数を定義する:
+
+```css
+:root {
+  --card-bg: rgba(255, 255, 255, 0.88);
+  --card-border: rgba(112, 83, 70, 0.14);
+  --accent-color: #ef6c00;
+}
+```
+
+### 2. スコアボード全体のレイアウト(Flexbox)
+
+```html
+<div class="score-board">
+  <div class="score-card">得点: 120</div>
+  <div class="score-card">コンボ: 3</div>
+</div>
+```
+
+`.score-board`に、実際のCake-Gameと同じく`display: flex`と`gap: 10px`を指定する。
+
+### 3. 各カードの見た目(余白とサイズ、見た目を整える)
+
+`.score-card`に、以下を指定する(実際のCake-Gameの値を参考にしてよい):
+
+- `padding: 10px 12px`
+- `border: 2px solid var(--card-border)`
+- `border-radius: 8px`
+- `background: var(--card-bg)`
+- `box-shadow: 0 12px 24px rgba(80, 48, 32, 0.08)`
+- `min-width: 96px`
+
+### 4. コンボバッジの重ね配置(position)
+
+`.score-card`に`position: relative`を指定し、その中に`.combo-badge`という子要素を追加する:
+
+```html
+<div class="score-card">
+  コンボ: 3
+  <span class="combo-badge">🔥</span>
+</div>
+```
+
+`.combo-badge`は`position: absolute`で、カードの右下(`right: 9px; bottom: 9px;`)に配置する。
+
+### 5. 弾むアニメーション(@keyframes)
+
+`combo-pop`という名前の`@keyframes`を定義し(0-7で作ったものを再利用してよい)、`.combo-badge`に適用する。
+
+## クリア条件
+
+- CSS変数が`:root`で定義され、`var()`で正しく使われていること
+- `.score-board`がFlexboxで横並びになっていること
+- 各カードに、影・角丸・背景色が正しく指定されていること
+- `.combo-badge`が、親カードの右下に`position: absolute`で正しく重ねて配置されていること
+- ページを開いた瞬間、バッジが軽く弾むアニメーションをすること
+
+---
+
+ここまでできれば、ch0(HTML/CSS基礎)は完了。次はレビュー演習に進んで、全課の教材が完成する。

@@ -1,0 +1,91 @@
+---
+exercise_id: "ch0-02-selectors-and-variables"
+title: "CSSセレクタの基本とCSS変数"
+order: 2
+---
+
+## 説明
+
+ここまでのレッスンでは「どんなプロパティがあるか」を扱ってきたけど、「そのプロパティを、どの要素に適用するか」を指定する部分(セレクタ)をまだ扱ってなかった。
+
+**基本のセレクタ**:
+
+```css
+h1 { color: red; }        /* 要素セレクタ:全ての<h1>に適用 */
+.card { padding: 16px; }  /* クラスセレクタ:class="card"を持つ要素に適用 */
+#header { height: 60px; } /* IDセレクタ:id="header"を持つ、たった1つの要素に適用 */
+```
+
+`.`(ドット)で始まるのが**クラスセレクタ**——1つのページの中で、同じクラス名を持つ複数の要素に、まとめてスタイルを適用できる(一番よく使われる)。`#`(シャープ)で始まる**IDセレクタ**は、そのページの中でただ1つだけの、特別な要素を指定する時に使う。
+
+**`*`(アスタリスク)**は、全ての要素を指定する「全称セレクタ」:
+
+```css
+* {
+  box-sizing: border-box;
+}
+```
+
+これは「ページ全体の、あらゆる要素に対して、まとめてこのスタイルを適用する」という意味。`box-sizing: border-box`は、CSSでかなり頻繁に使われるおまじない的な設定で、「`width`/`height`を指定する時、`padding`や`border`の分も含めて計算する」という挙動にする(これがないと、`padding`を足すたびに実際の大きさが想定よりはみ出す、という初心者が混乱しやすい問題が起きる)。
+
+**`:hover`のような、コロンで始まるもの**は**擬似クラス**——「特定の状態の時だけ」スタイルを適用する:
+
+```css
+.button:hover {
+  background: #f57c00; /* マウスが乗った時だけ、背景色が変わる */
+}
+```
+
+**CSS変数(カスタムプロパティ)**は、色やサイズなどの値に、自分で名前をつけて使い回せる仕組み:
+
+```css
+:root {
+  --main-color: #ef6c00;
+  --spacing: 16px;
+}
+
+.button {
+  background: var(--main-color);
+  padding: var(--spacing);
+}
+```
+
+**`:root`**は「ページ全体のルート(一番上の階層)」を指すセレクタで、ここに`--変数名: 値;`という形でCSS変数を定義するのが定石。定義した変数は、`var(--変数名)`という書き方で、どこからでも呼び出せる。同じ色やサイズを何箇所にも書く代わりに、1箇所で定義して使い回すことで、後から色を変えたくなった時に`:root`の1行を直すだけで済む、というメリットがある。
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`styles/global.css`の冒頭部分:
+
+```css
+:root {
+  color: #2d2420;
+  background: #fff7ed;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  font-synthesis: none;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+* {
+  box-sizing: border-box;
+}
+```
+
+ここでの`:root`は、CSS変数の定義というより、ページ全体のデフォルトの文字色・背景色・フォントを一括指定する使い方。`font-family`にはフォント名が複数カンマ区切りで並んでるけど、これは「最初の`Inter`が使えなければ、次の`ui-sans-serif`を試す」という優先順位のリストになっている(最後の`sans-serif`は「どれもダメなら、OSの標準的なゴシック体で表示する」という最終手段)。
+
+`* { box-sizing: border-box; }`は、まさに前で説明した「全要素に対する、サイズ計算のおまじない」の実例。多くのプロジェクトで、CSSファイルの一番最初に書かれる定番の書き方になっている。
+
+CSS変数自体も、実は`game.css`側で12回使われてる(色を統一するための`--`変数など)。Train_Proto-Typeの`App.css`ではさらに多く、42回も使われてる——電車のアニメーションで、駅の座標や色を変数化して使い回してるためと推測できる。
+
+## 演習
+
+`:root`に`--accent-color: #ef6c00;`というCSS変数を定義し、`.highlight`というクラスに`color: var(--accent-color);`を指定するCSSを書いてください。さらに、`.highlight:hover`(マウスが乗った時)だけ、文字を太字(`font-weight: 700`)にするスタイルも追加してください。
+
+### クリア条件
+
+- `:root`でCSS変数が正しく定義されていること
+- `var()`で正しく参照されていること
+- `:hover`の擬似クラスが正しく使われていること

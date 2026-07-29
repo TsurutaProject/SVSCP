@@ -1,0 +1,72 @@
+---
+exercise_id: "ch0-07-position"
+title: "positionでの重ね配置(absolute, z-index)"
+order: 7
+---
+
+## 説明
+
+通常、HTML要素は上から下に、書かれた順番通りに並んでいく(これを通常のフローと呼ぶ)。でも「他の要素の上に重ねて表示したい」「特定の位置に固定して配置したい」という場合は、`position`プロパティを使う。
+
+- **`position: relative`** — 見た目上はほぼ何も変わらないが、「この要素を基準にして、中の子要素を配置できるようにする」という重要な役割を持つ
+- **`position: absolute`** — 直近の`position: relative`(または`absolute`/`fixed`)がついた親要素を基準にして、自由な位置に配置する
+- **`position: fixed`** — 画面(ブラウザのビューポート)を基準にして、常に同じ位置に固定する(スクロールしても動かない)
+
+```css
+.parent {
+  position: relative; /* 基準を作る */
+}
+
+.badge {
+  position: absolute;
+  top: 8px;
+  right: 8px; /* 親の右上に配置される */
+}
+```
+
+複数の要素が重なる場合、どちらが上に表示されるかを決めるのが`z-index`。数値が大きいほど、手前(上)に表示される。**`z-index`は、`position`が`static`(デフォルト)以外の要素にしか効果がない**、という点は覚えておく必要がある。
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`styles/game.css`から、`position: relative`+`position: absolute`のペア:
+
+```css
+.score-board div {
+  position: relative;
+  /* ... */
+}
+
+.combo-candles {
+  position: absolute;
+  right: 9px;
+  bottom: 9px;
+  /* ... */
+}
+```
+
+親要素(`score-board div`)に`position: relative`を指定しておくことで、子要素(`combo-candles`、コンボ表示のロウソク)がその親の右下を基準にして配置されてる。もし親に`position: relative`がなければ、`.combo-candles`は画面全体を基準にした、意図しない位置に飛んでしまう。
+
+`z-index`を使った、モーダル(画面全体を覆う表示)らしき実例:
+
+```css
+.something-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+}
+```
+
+`position: fixed`で画面全体に固定し、`inset: 0`(上下左右すべて0、つまり画面いっぱいに広げる、`top/right/bottom/left: 0`をまとめて書ける便利な書き方)、`z-index: 40`で他の通常の要素より手前に表示されるようにしてる。`display: grid` + `place-items: center`(Gridの子要素を縦横中央に揃える便利なプロパティ)で、中身を画面の真ん中に表示してる。
+
+別の場所には`z-index: 50`という、さらに大きい値の要素もあった。複数のオーバーレイが同時に存在しうる場合、「どちらがより手前にあるべきか」を数値の大小で管理してる、という設計が読み取れる。
+
+## 演習
+
+`.card`(親要素、`position: relative`)の右上に、`.badge`(子要素、`position: absolute`、`top: 8px; right: 8px;`)を重ねて表示するCSSを書いてください。
+
+### クリア条件
+
+- 親要素に`position: relative`が指定されていること
+- 子要素が`position: absolute`で、親の右上を基準に配置されていること

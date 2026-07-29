@@ -1,0 +1,84 @@
+---
+exercise_id: "ch0-08-keyframes"
+title: "@keyframesでアニメーション"
+order: 8
+---
+
+## 説明
+
+`@keyframes`は、「時間の経過とともに、スタイルがどう変化するか」を定義するCSSの仕組み。定義した後、`animation`プロパティで実際の要素に適用する。
+
+```css
+@keyframes pop {
+  0% { transform: scale(0.8); }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.badge {
+  animation: pop 240ms ease-out;
+}
+```
+
+- **`@keyframes 名前 { ... }`** — アニメーションの中身を定義する。`0%`(開始時点)、`70%`(70%経過した時点)、`100%`(終了時点)のように、時間の割合ごとに、その瞬間のスタイルを指定する
+- **`transform: scale(0.8)`** — 要素の大きさを0.8倍にする(`scale`は拡大縮小、他に`rotate`回転、`translate`移動なども指定できる)
+- **`animation: pop 240ms ease-out`** — 「`pop`という名前のkeyframesを、240ミリ秒かけて、`ease-out`(最初速く、だんだん減速する)というタイミングで実行する」という指定
+
+`transform`が使われることが多い理由は、`width`や`top`のような値を直接アニメーションさせるより、`transform`(拡大縮小・移動・回転)を使う方がブラウザの処理が軽く、滑らかに動く傾向があるため。
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`styles/game.css`から:
+
+```css
+@keyframes combo-pop {
+  0% { transform: scale(0.78); }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+```
+
+「小さい状態(0.78倍)から始まり、少し大きく(1.1倍)膨らんでから、最終的に等倍(1倍)に落ち着く」という、弾むような演出。コンボが増えた瞬間などに使われてると推測できる。実際に適用されてる箇所:
+
+```css
+.combo-value {
+  animation: combo-pop 240ms ease-out;
+}
+```
+
+`240ms`(0.24秒)という、短くて機敏な時間指定。コンボ表示の演出は、ゲームのテンポを損なわないよう、瞬間的に終わる短さにするのが定石。
+
+Train_Proto-Typeの`App.css`には、複数の`@keyframes`を組み合わせて、より複雑な動きを作ってる例もある:
+
+```css
+@keyframes turnaround-demo-straight-switch {
+  0%, 46% { opacity: 1; }
+  52%, 100% { opacity: 0; }
+}
+
+@keyframes turnaround-demo-curve-switch {
+  0%, 46% { opacity: 0; }
+  52%, 100% { opacity: 1; }
+}
+```
+
+2つのkeyframesが対になってる(片方が見えてる間、もう片方は消えてる)ことに注目。これを組み合わせることで、「直線のレールから、カーブのレールに切り替わる」ような、2つの状態が入れ替わるアニメーションを演出してる。`0%, 46%`のように、カンマ区切りで複数の時点に同じスタイルを指定する書き方も、ここで実例として確認できる。
+
+## 演習
+
+`bounce`という名前の`@keyframes`を作成してください。`0%`で`transform: translateY(0)`、`50%`で`transform: translateY(-10px)`(上に10px移動)、`100%`で`transform: translateY(0)`(元の位置に戻る)という、上下に軽くバウンドする動きにしてください。その後、`.icon`というクラスに`animation: bounce 500ms ease-in-out;`を適用してください。
+
+### クリア条件
+
+- `@keyframes`が0%/50%/100%の3段階で正しく定義されていること
+- `.icon`に`animation`プロパティが正しく適用されていること
+
+---
+
+## 補足:Tailwind CSSという選択肢について
+
+今回のプラットフォーム、そして電車・ケーキ両プロトタイプは、すべてここまで学んだ「素のCSS」で書かれている。実務では、`className="flex items-center bg-blue-500 p-4"`のように、あらかじめ用意されたクラス名を組み合わせてスタイルを当てる**Tailwind CSS**も広く使われている。
+
+Tailwindのクラス名は、実は今回学んだCSSプロパティの「略記」に近い(`flex`は`display: flex`、`p-4`は`padding: 16px`に対応する、といった具合)。つまり、**素のCSSの意味が分かっていれば、Tailwindへの移行はそれほど難しくない**。
+
+今回の教材では、プロトタイプとの一貫性を優先して素のCSSのまま進めているが、余力があれば「このプラットフォームのUIをTailwindに置き換えてみる」という発展課題を、`add-exercise`のSkillに沿って追加するのも面白いかもしれない。

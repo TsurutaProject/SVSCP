@@ -1,0 +1,68 @@
+---
+exercise_id: "ch0-04-spacing-and-sizing"
+title: "余白とサイズ(padding, margin, width/height, gap)"
+order: 4
+---
+
+## 説明
+
+要素の大きさと間隔を扱う、CSSの中でも特によく使うプロパティ群。
+
+```css
+.box {
+  width: 200px;
+  height: 100px;
+  padding: 16px;
+  margin: 24px;
+}
+```
+
+- **`width`/`height`** — 要素自体の幅・高さ
+- **`padding`** — 要素の内側の余白(中身とふちの間の隙間)
+- **`margin`** — 要素の外側の余白(他の要素との間隔)
+
+`padding`と`margin`の違いは初心者が混同しやすいポイント:「内側(padding)」か「外側(margin)」かで覚えるといい。ボタンの中の文字とボタンの枠の間隔を広げたいなら`padding`、ボタン同士の間隔を空けたいなら`margin`。
+
+**`gap`** は、後で扱うFlexbox/Gridと組み合わせて使う、比較的新しいプロパティ:
+
+```css
+.container {
+  display: flex;
+  gap: 12px; /* 子要素同士の間隔を、まとめて指定できる */
+}
+```
+
+`gap`が登場する前は、子要素それぞれに`margin`を指定して間隔を作る必要があったけど、`gap`を使えば親要素に1行書くだけで、全部の子要素間の間隔を揃えられる。
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`styles/game.css`から:
+
+```css
+.score-board {
+  display: flex;
+  gap: 12px;
+}
+```
+
+スコア表示のパーツ(得点、コンボ数など)を横に並べつつ、`gap: 12px`でそれぞれの間に均等な隙間を作ってる。もし`gap`を使わず個別に`margin`を指定してたら、最初と最後の要素だけ余分な余白ができてしまう、といった調整の手間が発生してたはず。
+
+Train_Proto-Typeの`App.css`から:
+
+```css
+.something {
+  padding: 40px;
+  /* ... */
+}
+```
+
+`padding: 40px`のように、上下左右まとめて同じ値を指定する書き方が一番シンプル。個別に指定したい場合は`padding: 10px 20px`(上下10px、左右20px)や、`padding-top`/`padding-right`のように方向ごとのプロパティも使える。
+
+## 演習
+
+`.button-group`というクラスに、`display: flex`と`gap: 8px`を指定し、中の子要素同士が8pxの間隔で並ぶようにしてください。さらに、`.button-group`自体の`padding`を`16px`にして、外枠とボタン群の間にも余白を作ってください。
+
+### クリア条件
+
+- `gap`が子要素間の間隔として正しく機能していること
+- `padding`が`.button-group`自体に正しく指定されていること

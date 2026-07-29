@@ -1,0 +1,138 @@
+---
+exercise_id: "ch0-10-review-practice"
+title: "レビュー演習:このCSS、どこが問題?"
+order: 10
+---
+
+## この演習について
+
+これまでのレビュー演習(1〜4章)はJS/TSのコードを扱ってきたけど、今回はCSS特有の「一見動きそうで、実は意図通りにならない」パターンを扱う。以下の3つのコード例、それぞれ何が問題か指摘し、修正してください。
+
+---
+
+### コード例1
+
+```html
+<div class="card">
+  <span class="badge">New</span>
+</div>
+```
+
+```css
+.card {
+  padding: 16px;
+  border: 1px solid #ccc;
+}
+
+.badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+```
+
+**ヒント**:0-6(positionでの重ね配置)で学んだ内容に関係がある。
+
+<details>
+<summary>解答を見る</summary>
+
+**問題**:`.badge`に`position: absolute`が指定されているが、親要素の`.card`には`position`が何も指定されていない(デフォルトの`static`のまま)。`position: absolute`は「直近の、`position`が`static`以外の親要素」を基準にして配置されるため、このままだと`.card`ではなく、**もっと上の階層(画面全体に近いどこか)**を基準に配置されてしまい、意図した「カードの右上」には表示されない。
+
+**修正例**:
+
+```css
+.card {
+  position: relative;
+  padding: 16px;
+  border: 1px solid #ccc;
+}
+```
+
+`.card`に`position: relative`を追加することで、「`.badge`は`.card`を基準に配置される」という、意図通りの挙動になる。
+
+</details>
+
+---
+
+### コード例2
+
+```css
+.tooltip {
+  z-index: 100;
+  background: black;
+  color: white;
+}
+```
+
+**ヒント**:0-6(positionでの重ね配置)で学んだ内容に関係がある。
+
+<details>
+<summary>解答を見る</summary>
+
+**問題**:`z-index`が指定されているが、**`position`が指定されていない**(デフォルトの`static`のまま)。`z-index`は、**`position`が`static`以外(relative, absolute, fixedなど)の要素にしか効果がない**という仕様がある。このコードの場合、`z-index: 100`を書いても、実際には何も起こらず、他の要素との重なり順は通常のまま(HTML内の記述順)になってしまう。
+
+**修正例**:
+
+```css
+.tooltip {
+  position: relative; /* または absolute / fixed */
+  z-index: 100;
+  background: black;
+  color: white;
+}
+```
+
+`z-index`を使うときは、必ず`position`もセットで指定する必要がある。これは初心者だけでなく、経験者でも「なぜかz-indexが効かない」とハマりやすい、CSSの有名な落とし穴の1つ。
+
+</details>
+
+---
+
+### コード例3
+
+```css
+.button-row {
+  display: flex;
+}
+
+.button {
+  margin: 12px;
+}
+```
+
+このコードで、`.button-row`の中に3つの`.button`を並べた場合を考える。
+
+**ヒント**:0-4(余白とサイズ)で学んだ内容に関係がある。
+
+<details>
+<summary>解答を見る</summary>
+
+**問題**:これは「エラーになる」わけではないが、`margin`を使ったことで、**一番外側の左右にも余分な余白ができてしまう**(ボタンの間だけでなく、`.button-row`とボタンの間にも同じ12pxの隙間が生まれる)。「ボタン同士の間隔だけを均等に空けたい」という意図なら、`gap`を使う方が適切。
+
+**修正例**:
+
+```css
+.button-row {
+  display: flex;
+  gap: 12px;
+}
+
+.button {
+  /* marginは不要 */
+}
+```
+
+`gap`は「子要素と子要素の間だけ」に効果があり、一番外側には余分な余白を作らない。「複数の要素を並べて、均等な間隔を空けたい」という場面では、個別の`margin`より`gap`を使う方が、意図がずれにくく管理もしやすい。
+
+</details>
+
+---
+
+## まとめ
+
+今回の3つの問題(`position: relative`の親への指定漏れ、`position`なしの`z-index`、`margin`と`gap`の使い分け)は、**CSSが「エラーを出さずに、静かに意図と違う結果になる」ことが多い**という特性ゆえに起きやすいバグ。JS/TSのようにコンパイルエラーで教えてくれるわけではないので、**実際に画面を見て「思った通りになっているか」を確認する習慣**が、CSSレビューでは特に重要になる。
+
+### クリア条件
+
+- 3つのコード例すべてについて、問題点を自分の言葉で説明できること
+- 3つとも、修正したコードを書けること
