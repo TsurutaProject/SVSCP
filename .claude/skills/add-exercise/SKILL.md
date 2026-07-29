@@ -59,3 +59,18 @@ order: 5
 - MDXのfrontmatterと目次ファイルでexercise_idの綴りが微妙に違う(タイポ)
 - 連番を既存の演習と重複させてしまう
 - 目次ファイルへの追加を忘れて、コンテンツはあるのに進捗ボードに出てこない
+
+## 6. (任意)自動採点に対応させる場合
+
+演習をSandpackでの自動採点に対応させたい場合、以下2ファイルを`content/{章フォルダ}/`に追加する(ch1-01-arrow-functionで実装済みの前例に従う)。
+
+- `{exercise_id}.solution.ts` — 生徒がSandpack上で編集する雛形コード
+- `{exercise_id}.test.ts` — 隠しテストファイル(生徒には見せない、正誤判定用)
+
+### 注意点(ch1-01実装時に判明した仕様)
+
+- **これら2ファイルは、Next.jsプロジェクト自身の型チェック・lint対象から除外すること**。`tsconfig.json`・`eslint.config.mjs`の除外設定を確認し、新しい演習を追加するたびに対象パターンに含まれているか確認する(個別追加が必要な設定になっていないか要注意)
+- **`test-ts`テンプレートのテストランナーは、`customSetup.entry`を無視し、常に`/add.test.ts`という固定の仮想パスを実行対象として探す**(ドキュメント化されていない挙動)。実ファイル名は`{exercise_id}.test.ts`のままでよいが、Sandpackに渡す際は`/add.test.ts`という固定パスにマッピングする処理を通すこと。詳細は`src/lib/curriculum/grading.ts`の実装を参照
+- **`SandpackTests`の`initMode`は、既定値`"lazy"`のままだとPreview非表示構成で発火しないことがある**。`initMode: "immediate"`を明示すること
+- **`onComplete`コールバックはレンダー中に呼ばれるため、直接`setState`するとReactの警告が出る**。`setTimeout`で1ティックずらしてから状態を更新すること(`src/components/SandpackGrader.tsx`に実装例あり)
+- テスト合格を検知したら、既存の`updateExerciseStatus`(Server Action)を呼び出し、`status: "cleared"`として自動記録する。手動でのステータス切り替えUIと共存させてよい(自動採点に対応してない演習は、引き続き手動切り替えのままでよい)
