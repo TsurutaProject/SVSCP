@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import {
   SandpackProvider,
   SandpackLayout,
   SandpackCodeEditor,
   SandpackTests,
+  type SandpackOptions,
 } from "@codesandbox/sandpack-react";
 import { updateExerciseStatus } from "@/app/actions";
 
@@ -13,6 +14,14 @@ type SandpackGraderProps = {
   exerciseId: string;
   solutionStarter: string;
   testCode: string;
+};
+
+// propsに依存しないため、モジュールレベルの定数として1つの参照に固定する。
+const SANDPACK_OPTIONS: SandpackOptions = {
+  visibleFiles: ["/solution.ts"],
+  activeFile: "/solution.ts",
+  initMode: "immediate",
+  autorun: true,
 };
 
 // @codesandbox/sandpack-react は SandpackTests の onComplete が受け取る
@@ -64,6 +73,19 @@ export function SandpackGrader({ exerciseId, solutionStarter, testCode }: Sandpa
   const [cleared, setCleared] = useState(false);
   const [isPending, startTransition] = useTransition();
 
+  // filesをレンダーのたびに新しいオブジェクトとして生成すると、SandpackProviderが
+  // 「filesが変わった」と判断してエディタの中身を初期状態にリセットしてしまう。
+  // (updateExerciseStatus内のrevalidatePathにより、このページ自身もサーバー側で
+  // 再レンダーされてSandpackGraderが再実行されるため、内容が同じでも
+  // 参照を安定させておく必要がある)
+  const files = useMemo(
+    () => ({
+      "/solution.ts": { code: solutionStarter },
+      "/add.test.ts": { code: testCode, hidden: true },
+    }),
+    [solutionStarter, testCode],
+  );
+
   const handleComplete = (specs: Record<string, TestSpecLike>) => {
     if (cleared) return;
     if (!isAllTestsPassed(specs)) return;
@@ -90,16 +112,8 @@ export function SandpackGrader({ exerciseId, solutionStarter, testCode }: Sandpa
         // 常に /add.test.ts を実行対象として探すため、実ファイル名は
         // {exercise_id}.test.ts のままでも、Sandpackへ渡す際はこの固定の
         // 仮想パスにマッピングする。
-        files={{
-          "/solution.ts": { code: solutionStarter },
-          "/add.test.ts": { code: testCode, hidden: true },
-        }}
-        options={{
-          visibleFiles: ["/solution.ts"],
-          activeFile: "/solution.ts",
-          initMode: "immediate",
-          autorun: true,
-        }}
+        files={files}
+        options={SANDPACK_OPTIONS}
       >
         <SandpackLayout>
           <SandpackCodeEditor showLineNumbers />
