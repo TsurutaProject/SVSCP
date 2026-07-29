@@ -1,6 +1,7 @@
 import type { ChapterMeta } from "@/lib/curriculum/types";
 import { ch1Exercises } from "../../../content/ch1-js-ts/_index";
 import { ch2Exercises } from "../../../content/ch2-react/_index";
+import { ch3Exercises } from "../../../content/ch3-practice/_index";
 import { ch4Exercises } from "../../../content/ch4-nextjs/_index";
 
 // content/ にまだ実データがない章は仮の演習リストを置いている。
@@ -31,11 +32,7 @@ export const chapters: ChapterMeta[] = [
   {
     id: "ch3",
     title: "実践編",
-    exercises: [
-      { id: "ch3-01-cake-cut-logic", title: "ケーキカットロジック", order: 1 },
-      { id: "ch3-02-score-calculator", title: "スコア計算機", order: 2 },
-      { id: "ch3-03-random-quiz-picker", title: "ランダム出題ロジック", order: 3 },
-    ],
+    exercises: ch3Exercises,
   },
   {
     id: "ch4",

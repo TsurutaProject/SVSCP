@@ -1,0 +1,74 @@
+---
+exercise_id: "ch3-06-capstone"
+title: "総合演習:電車の運行管理パネル(完成)"
+order: 6
+---
+
+## この演習について
+
+3-1から3-5までで作ってきた部品(データ構造、utils、SVG路線図、クリック配置、データ操作)を、**1つの完成した`DispatchPanel`コンポーネント**としてまとめる、3章の総仕上げ。
+
+## 完成イメージ
+
+- 画面上部:SVGの路線図(駅を`<circle>`、レールを`<line>`で表示、レールをクリックすると配置状態が切り替わる)
+- 画面中部:電車の一覧(名前・速度・遅延状況を表示)
+- 画面下部:操作パネル(検索、並び替え、警告表示)
+
+## 要件
+
+以下のデータ構造を土台にする(3-1で定義したもの):
+
+```ts
+interface Train {
+  id: string
+  name: string
+  speed: number
+  delayMinutes: number
+}
+
+interface Rail {
+  id: string
+  type: "fast" | "normal"
+  isPlaced: boolean
+}
+
+interface Station {
+  id: string
+  name: string
+  x: number
+  y: number
+}
+```
+
+### 1. utilsの用意(3-2の復習)
+
+`utils/trainUtils.ts`に、以下の関数を実装する(すでに3-2で作成済みならそのまま使ってよい):
+
+- `countDelayedTrains(trains: Train[]): number`
+- `getAverageSpeed(trains: Train[]): number`
+- `findTrainByName(trains: Train[], name: string): Train | undefined`(3-5)
+- `hasAnyDelayedTrain(trains: Train[]): boolean`(3-5)
+- `sortBySpeedDescending(trains: Train[]): Train[]`(3-5、元の配列を変更しないこと)
+
+### 2. SVG路線図(3-3, 3-4の復習)
+
+`stations`(3駅程度)と`rails`(駅と駅の間に配置する)を、`<svg>` + `<circle>` + `<line>`で表示する。レールをクリックすると`isPlaced`が反転する(3-4の関数型更新パターンを使うこと)。
+
+### 3. 電車一覧と操作パネル
+
+- 電車の名前で検索できる入力欄(`onChange`、`findTrainByName`を使用)
+- 「速度順に並び替え」ボタン(`sortBySpeedDescending`を使用、結果を新しいstateとして保持する)
+- `hasAnyDelayedTrain(trains)`が`true`の場合だけ、`&&`を使って「遅延している電車があります」という警告を表示する(2章の条件付きレンダリングの復習)
+- 電車一覧は`.map()` + `key`でリスト表示する
+
+### クリア条件
+
+- `utils/trainUtils.ts`に5つの関数が、コンポーネントとは独立して実装されていること
+- SVGの路線図が表示され、レールのクリックで配置状態が切り替わること
+- 検索機能が`findTrainByName`を使って正しく動作すること
+- 並び替えボタンが、元の配列を変更せず新しい配列を作って表示を更新すること
+- 遅延電車がいる場合だけ、警告メッセージが表示されること
+
+---
+
+これで完成すれば、`DispatchPanel`は「1つの機能」ではなく「1つの完結したアプリ」として動くようになっているはず。次はレビュー演習に進んで、3章は完了。

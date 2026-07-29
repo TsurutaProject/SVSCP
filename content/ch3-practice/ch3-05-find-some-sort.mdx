@@ -1,0 +1,95 @@
+---
+exercise_id: "ch3-05-find-some-sort"
+title: ".find() / .some() / .sort()を使った実践的なデータ操作"
+order: 5
+---
+
+## 説明
+
+1章で`.map()`/`.filter()`を扱ったけど、配列にはもっと多くの便利なメソッドがある。ここでは実践でよく使う3つを扱う。
+
+**`.find()`** — 配列の中から、条件に合う最初の1つだけを探す(見つからなければ`undefined`)。
+
+```ts
+const trains = [{ id: "t1", name: "のぞみ" }, { id: "t2", name: "ひかり" }];
+const found = trains.find((t) => t.id === "t2");
+// found = { id: "t2", name: "ひかり" }
+```
+
+**`.some()`** — 配列の中に、条件に合う要素が1つでもあるかを、真偽値(`true`/`false`)で返す。
+
+```ts
+const hasDelayed = trains.some((t) => t.delayMinutes > 0);
+// 1つでも遅延してればtrue
+```
+
+**`.sort()`** — 配列を並び替える。比較関数(2つの要素を受け取り、順番を決める数値を返す関数)を渡すのが基本:
+
+```ts
+const numbers = [3, 1, 4, 1, 5];
+numbers.sort((a, b) => a - b); // 昇順:[1, 1, 3, 4, 5]
+numbers.sort((a, b) => b - a); // 降順:[5, 4, 3, 1, 1]
+```
+
+`a - b`が負なら「aが先」、正なら「bが先」、0なら「順序そのまま」という決まりになっている。**`.sort()`は元の配列を直接書き換える(破壊的)**という点に注意が必要——1章・2章で大事にしてきた「元のデータを直接変更しない」原則を守るには、コピーしてからソートする(`[...array].sort(...)`)のが安全。
+
+## 実際のプロトタイプでの例
+
+Cake-Gameの`App.tsx`から、`.sort()`の実例:
+
+```ts
+return Array.from(angleMap.values()).sort((left, right) => left - right)
+```
+
+これは「角度の一覧を、小さい順に並び替える」処理。`(left, right) => left - right`という比較関数で、数値の昇順ソートを実現してる。
+
+`.some()`の実例:
+
+```ts
+const hasHalfPieces = nextBoardPieces.some((piece) =>
+  // ある条件を満たすか
+)
+```
+
+```ts
+if (!boardPieces.some((currentPiece) => currentPiece.id === piece.id)) {
+  // ボード上にまだ存在しない場合の処理
+}
+```
+
+`!boardPieces.some(...)`のように、`!`(否定)と組み合わせて「1つも存在しない」を判定するのはよく使われるパターン。「特定のidを持つ要素が、配列の中にすでに存在するかどうか」をチェックするのに使われてる。
+
+## コラム:Java・Railsとの対応
+
+### Java
+
+```java
+Optional<Train> found = trains.stream().filter(t -> t.getId().equals("t2")).findFirst();
+boolean hasDelayed = trains.stream().anyMatch(t -> t.getDelayMinutes() > 0);
+trains.sort((a, b) -> a.getSpeed() - b.getSpeed());
+```
+
+`.find()`は`.findFirst()`(ただし`Optional`で包まれて返ってくる点がJSと違う)、`.some()`は`.anyMatch()`、`.sort()`は`Comparator`を渡す`.sort()`と、それぞれ対応するメソッドがちゃんと存在する。考え方はほぼ同じなので、Streamに慣れてるなら迷わないはず。
+
+### Rails
+
+```ruby
+found = trains.find { |t| t.id == "t2" }
+has_delayed = trains.any? { |t| t.delay_minutes > 0 }
+trains.sort_by { |t| t.speed }
+```
+
+Rubyの`.find`はJSとメソッド名まで完全に同じ。`.some()`はRubyでは`.any?`という名前になる(発想は同じ)。`.sort()`より`.sort_by`(比較用の値を指定するだけでいい書き方)の方がRubyではよく使われる、という違いはあるものの、考え方の基本線は変わらない。
+
+## 演習
+
+`trains`という配列を受け取り、以下3つを行う関数群を作成してください:
+
+- `findTrainByName(trains, name)` — 指定した名前の電車を`.find()`で探す
+- `hasAnyDelayedTrain(trains)` — 1本でも遅延してる電車があるか、`.some()`で判定する
+- `sortBySpeedDescending(trains)` — 速度が速い順に並び替えた新しい配列を返す(元の配列は変更しない。コピーしてから`.sort()`すること)
+
+### クリア条件
+
+- `.find()`, `.some()`, `.sort()`それぞれが正しく使われていること
+- `sortBySpeedDescending`が、元の`trains`配列を変更していないこと(`[...trains].sort(...)`のような書き方になっていること)

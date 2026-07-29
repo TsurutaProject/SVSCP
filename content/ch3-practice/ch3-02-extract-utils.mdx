@@ -1,0 +1,94 @@
+---
+exercise_id: "ch3-02-extract-utils"
+title: "ロジックをコンポーネントから切り出す(utils設計)"
+order: 2
+---
+
+## 説明
+
+コンポーネントの中に、計算ロジックを直接書き込むこともできる。でも、ロジックが複雑になってきたら、コンポーネントの外(別ファイル)に切り出すのが実践的なやり方。
+
+```tsx
+// 切り出す前:コンポーネントの中に直接書く
+function DispatchPanel() {
+  const fastRailCount = rails.filter((r) => r.type === "fast" && r.isPlaced).length;
+  // ...
+}
+```
+
+```ts
+// utils/railUtils.ts に切り出す
+export const countPlacedFastRails = (rails: Rail[]): number =>
+  rails.filter((r) => r.type === "fast" && r.isPlaced).length;
+```
+
+```tsx
+// コンポーネント側は「呼ぶだけ」になる
+import { countPlacedFastRails } from "./utils/railUtils";
+
+function DispatchPanel() {
+  const fastRailCount = countPlacedFastRails(rails);
+  // ...
+}
+```
+
+切り出すメリットは主に2つ:
+
+1. コンポーネントが「見た目」に集中でき、読みやすくなる
+2. ロジック単体でテストが書ける(コンポーネントを画面に表示しなくても、関数だけを直接テストできる)
+
+## 実際のプロトタイプでの例
+
+Train_Proto-Typeには、まさにこのパターンの実例がそのままファイルとして存在してる。`src/fastRailSavings.js`というファイルが丸ごと、コンポーネントから独立したロジック集になってる:
+
+```js
+export const countPlacedFastRails = (placedRails = []) =>
+  placedRails.filter((rail) => rail.type === 'fast').length
+
+export const getFastRailSavingsRank = (savingsRating) =>
+  FAST_RAIL_SAVINGS_RANKS[savingsRating] ?? FAST_RAIL_SAVINGS_RANKS.none
+```
+
+`countPlacedFastRails`は、まさに「高速レールを数える」処理そのもの。`placedRails = []`のようにデフォルト引数を使い、`.filter()`と組み合わせてる(1章の知識の再利用)。
+
+さらに重要なのが、このファイルにはペアの`fastRailSavings.test.js`というテストファイルが実在すること:
+
+```js
+import { countPlacedFastRails } from './fastRailSavings.js'
+
+test('盤面上の高速レールを経路外も含めて数える', () => {
+  const placedRails = [
+    { x: 1, y: 0, type: 'fast', includedInRoute: true },
+    { x: 7, y: 7, type: 'fast', includedInRoute: false },
+    { x: 2, y: 0, type: 'slow', includedInRoute: true },
+  ]
+
+  assert.equal(countPlacedFastRails(placedRails), 2)
+})
+```
+
+`assert.equal(実際の結果, 期待する結果)`という形で、「この関数に、このデータを渡したら、この値が返るはず」ということを検証してる。もしロジックがコンポーネントの中に埋め込まれたままだったら、こんなふうに単体でテストするのは難しかったはず。「ロジックを切り出す」ことの実利益が、まさにここに表れてる。
+
+## コラム:Java・Railsとの対応
+
+### Java
+
+Javaでは、こうしたロジックを`XxxUtil`や`XxxService`のようなクラスにまとめるのが伝統的なパターン。「UIを担当するクラス」と「ロジックを担当するクラス」を分ける、という設計思想自体はReact/JSでも全く同じ。JUnitでのユニットテストの書き方(`assertEquals(expected, actual)`)も、今回見た`assert.equal`とほぼ同じ発想。
+
+### Rails
+
+Railsでも、モデルやコントローラーが肥大化してきたら、Service Object(`app/services/`配下に置く、特定の処理だけを担当するクラス)に切り出すという設計パターンがよく使われる。「複雑になったら、責任ごとに分割する」という考え方は、フレームワークが違っても共通する原則。RSpecでのテストの書き方(`expect(result).to eq(expected)`)も、発想は同じ。
+
+## 演習
+
+`utils/trainUtils.ts`というファイルを作成し、以下2つの関数をコンポーネントから切り出す形で実装してください:
+
+- `countDelayedTrains(trains: Train[]): number` — 遅延してる電車の数を数える
+- `getAverageSpeed(trains: Train[]): number` — 電車の平均速度を計算する
+
+その後、`DispatchPanel`コンポーネント側で、この2つの関数をimportして使う形に書き換えてください。
+
+### クリア条件
+
+- 2つの関数が、コンポーネントとは別のファイル(`utils/trainUtils.ts`)に定義されていること
+- `DispatchPanel`側では、ロジックを直接書かず、importした関数を呼ぶだけになっていること

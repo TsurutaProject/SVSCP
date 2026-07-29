@@ -1,0 +1,103 @@
+---
+exercise_id: "ch3-04-click-to-place"
+title: "クリックでレールを選択・配置"
+order: 4
+---
+
+## 説明
+
+前のレッスンで路線図(SVG)の骨格ができたので、今度は「クリックしてレールを配置する」という操作を実装する。ここでのポイントは、「今の状態を元に、次の状態を計算する」という更新の仕方。
+
+2章(useStateの基礎)で少し触れた「関数を渡す形」の更新が、ここで本格的に必要になる:
+
+```tsx
+const placeRail = (railId: string) => {
+  setRails((previousRails) =>
+    previousRails.map((rail) =>
+      rail.id === railId ? { ...rail, isPlaced: true } : rail
+    )
+  );
+};
+```
+
+`previousRails`(直前の配列)を受け取り、`.map()`で「該当するレールだけ`isPlaced: true`に更新した、新しい配列」を作って返す。1章のスプレッド構文、2章の`.map()`、両方の組み合わせ。
+
+「すでに配置済みなら何もしない」のような早期リターンも、実践ではよく使う:
+
+```tsx
+const placeRail = (railId: string) => {
+  const target = rails.find((rail) => rail.id === railId);
+  if (target?.isPlaced) return; // すでに配置済みなら、何もしない
+
+  setRails((previousRails) =>
+    previousRails.map((rail) =>
+      rail.id === railId ? { ...rail, isPlaced: true } : rail
+    )
+  );
+};
+```
+
+## 実際のプロトタイプでの例
+
+Train_Proto-Typeの`App.jsx`に、まさにこのパターンの実例がある:
+
+```js
+const placeSlowRail = (x, y) => {
+  const position = { x, y }
+
+  if (isSpecialCell(x, y) || getObstacleAt(position) || trainRun) return
+
+  setMessage('')
+  setPlacedRails((previousRails) => {
+    const currentRail = previousRails.find(
+      (rail) => rail.x === x && rail.y === y,
+    )
+
+    if (currentRail?.type === 'slow') return previousRails
+
+    return [
+      ...previousRails.filter((rail) => rail.x !== x || rail.y !== y),
+      { x, y, type: 'slow' },
+    ]
+  })
+}
+```
+
+先頭の`if (isSpecialCell(x, y) || getObstacleAt(position) || trainRun) return`は、「特殊なマスか、障害物があるか、すでに電車が走行中なら、何もしないで処理を終える」という早期リターン(`||`で複数条件をまとめてる、2-6の`&&`の仲間)。
+
+`setPlacedRails((previousRails) => { ... })`の中では、`.find()`(1章で軽く触れた、`.filter()`の仲間)で「すでに同じ場所にレールがあるか」を確認し、`.filter()`+スプレッドで「その場所の既存のレールを取り除きつつ、新しいレールを追加した配列」を作って返してる。「同じ場所への重複配置を防ぐ」という実践的なロジックが、ここまで学んだ知識だけで組み立てられてるのが分かるはず。
+
+さらに、`getCellFromPointerEvent`という関数には、2章で学んだ`document`の直接操作も登場する:
+
+```js
+const getCellFromPointerEvent = (event) => {
+  const element = document.elementFromPoint(event.clientX, event.clientY)
+  const cell = element?.closest('[data-cell-key]')
+  // ...
+}
+```
+
+`document.elementFromPoint(x, y)`は、「画面上のこの座標に、実際にどのDOM要素があるか」を調べる関数。クリックされた座標から、対応するマス目を逆算してる。
+
+## コラム:本格的なドラッグにしたい場合
+
+今回は「クリックで配置」というシンプルな操作にしたけど、ドラッグ操作(掴んで、動かして、離す)にしたい場合は、2章で学んだ`onPointerDown`/`onPointerMove`/`onPointerUp`の3点セットを使い、「掴んでる間の座標を`useState`で追跡し続ける」という実装が必要になる。これは今回のミニアプリの範囲を超えるので発展課題としているが、Cake-Gameの`CakeBoard.tsx`にまさにその実装がある(2-3で見た`onPointerDown`/`onPointerMove`/`onPointerUp`の実例)。興味があれば、そちらのコードも覗いてみるといい。
+
+## コラム:Java・Railsとの対応
+
+### Java
+
+`if (condition) return;`という早期リターンのパターンは、Javaでも全く同じように使われる。`setPlacedRails((previousRails) => ...)`のような「今の値を元に、関数で新しい値を計算する」というパターンは、Javaの世界だと`Optional.map()`やStreamの中間操作に近い感覚がある。
+
+### Rails
+
+`previousRails.filter(...).concat([...])`のような「既存のコレクションから、一部を除いて新しい要素を足す」操作は、Rubyなら`array.reject { |item| ... } + [new_item]`のように書ける。考え方は同じだけど、Railsの文脈だと、こうしたコレクション操作はコントローラーではなくモデルやService Objectに書くのが一般的、という設計上の違いがある(3-2で話した内容ともつながる)。
+
+## 演習
+
+前のレッスンで作った`RouteMap`に、駅と駅の間にレール(`Rail`型、`isPlaced`で配置状態を管理)を追加してください。レールをクリックすると`isPlaced`が反転する(配置済み↔未配置)ようにし、すでに配置済みのレールをクリックした場合は「配置解除」の確認を挟まず、そのまま未配置に戻す形でOKです。関数型更新(`(previousRails) => ...`)を使うこと。
+
+### クリア条件
+
+- レールのクリックで`isPlaced`が正しく反転すること
+- `setRails`が関数型更新(`(prev) => ...`)の形で書かれていること

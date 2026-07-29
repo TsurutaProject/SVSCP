@@ -1,0 +1,69 @@
+---
+exercise_id: "ch3-03-svg-basics"
+title: "簡易SVGで路線図を描く"
+order: 3
+---
+
+## 説明
+
+SVG(Scalable Vector Graphics)は、線や図形を、数値の指定だけで描画できる画像形式。JSXの中でも、普通のHTMLタグと同じように`<svg>`, `<circle>`, `<line>`, `<path>`などをそのまま書ける。
+
+```tsx
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <circle cx="20" cy="50" r="8" fill="blue" />
+  <line x1="20" y1="50" x2="180" y2="50" stroke="black" strokeWidth="2" />
+  <circle cx="180" cy="50" r="8" fill="blue" />
+</svg>
+```
+
+- **`viewBox="0 0 200 100"`** — 「この中に描く図形は、幅200×高さ100の座標系で考える」という宣言。実際の表示サイズ(`width`/`height`)とは別に、内部の座標の基準を決めるもの
+- **`<circle cx cy r>`** — 円。`cx`/`cy`が中心座標、`r`が半径
+- **`<line x1 y1 x2 y2>`** — 直線。始点(`x1, y1`)と終点(`x2, y2`)を指定する
+
+これらの座標値も、`{}`を使ってJSの変数から動的に渡すことができる:
+
+```tsx
+<circle cx={station.x} cy={station.y} r={8} fill="blue" />
+```
+
+## 実際のプロトタイプでの例
+
+Train_Proto-Typeの`App.jsx`には、より高度なSVGの使用例がある:
+
+```jsx
+<svg
+  viewBox={`0 0 ${trainRun.motion.width} ${trainRun.motion.height}`}
+  preserveAspectRatio="none"
+  overflow="visible"
+>
+  <path
+    className="train-motion-guide"
+    d={trainRun.motion.path}
+  />
+  <MovingTrain motion={trainRun.motion} duration={trainRun.duration} ghost />
+</svg>
+```
+
+`viewBox`の値が、テンプレートリテラルを使って`trainRun.motion.width`/`height`という動的な値から組み立てられてる(1章のテンプレートリテラルの実用例)。`<path d={...}>`の`d`属性には、電車が走行するルートの形を表す複雑な座標指定の文字列が入ってる(これは自分で手書きするというより、プログラムで座標を計算して生成するのが一般的で、今回のミニアプリではここまで踏み込まない)。
+
+このレッスンの演習では、この複雑な`<path>`は使わず、まず`<circle>`と`<line>`という基本図形だけで、路線図の骨格を作ることを目指す。
+
+## コラム:Java・Railsとの対応
+
+### Java
+
+Javaで図形を描く場合、Swingの`Graphics`クラスを使って`g.drawLine(x1, y1, x2, y2)`のように、命令的に「線を引け」と1本ずつ指示するスタイルが一般的。SVGは逆に、「こういう図形がある」という宣言を並べるだけで、実際に描く処理自体はブラウザが担当してくれる。この「命令的 vs 宣言的」の違いは、実はReact自体の考え方(JSXで「こうあるべき」を書けば、Reactが実際の描画を担当する)ともそのまま繋がってる。
+
+### Rails
+
+RailsでSVGを直接生成する標準的な仕組みはあまりないけど、グラフ描画ライブラリ(Chartkickなど)を使ったことがあれば、「データを渡すと、グラフの見た目は勝手に生成される」という体験は近い。中身がSVGで出力されていることも多い。
+
+## 演習
+
+`stations`という配列(`[{ id: "s1", name: "東京", x: 20, y: 50 }, { id: "s2", name: "新横浜", x: 100, y: 50 }, { id: "s3", name: "名古屋", x: 180, y: 50 }]`)を受け取り、`<svg>`の中に、各駅を`<circle>`で、隣り合う駅同士を`<line>`で結んで表示する`RouteMap`コンポーネントを作成してください。駅の一覧表示には2章で学んだ`.map()`+`key`を使うこと。
+
+### クリア条件
+
+- `viewBox`が正しく設定された`<svg>`が使われていること
+- 3つの駅が`<circle>`で、隣接する駅同士が`<line>`で表示されていること
+- `.map()`と`key`が正しく使われていること

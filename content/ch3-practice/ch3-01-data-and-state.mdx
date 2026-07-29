@@ -1,0 +1,67 @@
+---
+exercise_id: "ch3-01-data-and-state"
+title: "データ構造とstate管理(電車の運行管理パネル)"
+order: 1
+---
+
+## この演習について
+
+3章は、ここまでの1章(JS/TS基礎)・2章(React基礎)で学んだ知識を総動員して、「電車の運行管理パネル」という1つのミニアプリを、レッスンを通して少しずつ組み上げていく。今回はその第一歩、土台となるデータ構造とstateを設計する。
+
+## 説明
+
+まず、扱うデータの形を決める。1章で学んだinterfaceとunion typeを使う:
+
+```ts
+interface Train {
+  id: string
+  name: string
+  speed: number
+  delayMinutes: number
+}
+
+interface Rail {
+  id: string
+  type: "fast" | "normal"
+  isPlaced: boolean
+}
+```
+
+`Train`は前に総合演習でも扱った形と似てる。`Rail`には`isPlaced`(配置済みかどうか)という真偽値を新しく追加してる。これは後のレッスン(クリックで配置)で使う。
+
+このデータを、2章で学んだ`useState`で管理する:
+
+```tsx
+function DispatchPanel() {
+  const [trains, setTrains] = useState<Train[]>([
+    { id: "t1", name: "のぞみ1号", speed: 300, delayMinutes: 0 },
+    { id: "t2", name: "ひかり5号", speed: 250, delayMinutes: 3 },
+  ]);
+
+  const [rails, setRails] = useState<Rail[]>([
+    { id: "r1", type: "fast", isPlaced: false },
+    { id: "r2", type: "normal", isPlaced: true },
+  ]);
+
+  return (
+    <div>
+      {/* ここに、後のレッスンで作っていく画面が入る */}
+    </div>
+  );
+}
+```
+
+1つのコンポーネントの中に、複数の独立したstateを持たせる、という2-4(useStateの基礎)で扱ったパターンをそのまま踏襲してる。`trains`と`rails`は、それぞれ別の関心事(電車の運行状況、レールの配置状況)を表してるので、1つの巨大なstateにまとめず分けている。
+
+## 実際のプロトタイプとの関連
+
+このデータ構造は、前の総合演習(1-15, 2-10)ですでに扱った`Train`型・`Rail`型を土台にしてる。3章では、これらを1つの画面の中で連携させて動かす、というのが今までとの違い。1章・2章では「機能ごとの断片」を作ってきたけど、3章では「1つのアプリとして最初から最後まで責任を持つ」経験をしてもらう。
+
+## 演習
+
+上記の`Train`・`Rail`の型定義と、`DispatchPanel`コンポーネントの雛形(useStateで両方のstateを持つだけ、表示はまだ空でOK)を作成してください。
+
+### クリア条件
+
+- `Train`・`Rail`、両方のinterfaceが正しく定義されていること
+- `DispatchPanel`コンポーネント内で、2つの独立した`useState`が正しく初期化されていること
