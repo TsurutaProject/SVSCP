@@ -62,15 +62,60 @@ order: 5
 
 ## 6. (任意)自動採点に対応させる場合
 
-演習をSandpackでの自動採点に対応させたい場合、以下2ファイルを`content/{章フォルダ}/`に追加する(ch1-01-arrow-functionで実装済みの前例に従う)。
+演習をSandpackでの自動採点に対応させたい場合、以下のファイルを`content/{章フォルダ}/`に追加し、`src/lib/curriculum/grading.ts`の`GRADED_EXERCISES`にエントリを追加する(ch1-01〜ch1-16で実装済みの前例に従う)。
 
-- `{exercise_id}.solution.ts` — 生徒がSandpack上で編集する雛形コード
-- `{exercise_id}.test.ts` — 隠しテストファイル(生徒には見せない、正誤判定用)
+- `{exercise_id}.solution.ts` — 生徒がSandpack上で編集する雛形コード(白紙式。後述)
+- `{exercise_id}.test.ts` — 隠しテストファイル(生徒には見せない、実行時の値を検証する)
+- `{exercise_id}.typecheck.ts` — (型定義そのものが問われる演習のみ)サーバー側TypeScriptコンパイラによる型チェック用ファイル。存在しない演習は`loadTypeCheckSource()`が`null`を返し、実行時テストのみで採点される
 
-### 注意点(ch1-01実装時に判明した仕様)
+### `.solution.ts`は「白紙式」にする
 
-- **これら2ファイルは、Next.jsプロジェクト自身の型チェック・lint対象から除外すること**。`tsconfig.json`・`eslint.config.mjs`の除外設定を確認し、新しい演習を追加するたびに対象パターンに含まれているか確認する(個別追加が必要な設定になっていないか要注意)
+穴埋め式(あらかじめ関数シグネチャや`throw new Error("TODO")`を書いておく形)は、実行時テストが`typeof`での値の比較しかできない都合上、型定義そのものの正誤を検証できないという問題があった。そのため以下の方針で統一している。
+
+- **関数名・型名(interface名・type名)は、テストファイルが`import`する名前と完全一致させ、固定する**。それ以外(関数のシグネチャ、引数・戻り値の型、実装の中身)はすべて生徒が書く
+- 雛形は「何を実装すべきか」を1〜数行のコメントで示すだけにする(コード・型注釈は一切書かない)。例(`ch1-09-interface.solution.ts`):
+  ```ts
+  // name(文字列)、line(文字列)、isTerminal(真偽値)を持つ Station interfaceと、
+  // それに沿ったオブジェクト station を実装してください。
+  ```
+- 総合演習(ch1-15など)のように必要なexport名が多い場合は、Part分けの見出しコメント+各項目の要点だけを箇条書きにする(コードそのものは書かない)
+- **例外: 「与えられたコードのバグを見つけて直す」形式のレビュー演習(ch1-16)には適用しない**。この形式はバグ入りコードそのものが演習の要なので、白紙化すると演習が成立しなくなる。従来通りバグ入りコード+TODOコメントのままにする
+
+### `.typecheck.ts`はどの演習に追加するか
+
+**interfaceやunion typeなど、型定義そのものの正しさが問われる演習にだけ**追加する(例: ch1-07基本の型注釈、ch1-09interface、ch1-10union type、ch1-11optional、ch1-12ネストした型、ch1-14ユーティリティ型、ch1-15capstoneのPart B)。単純な関数の実装(引数・戻り値の実行時の値だけが問われる演習、例:ch1-02〜06, 08)には不要。
+
+`.typecheck.ts`の書き方(`checkTypes()`が`{exercise_id}.solution.ts`と一緒にTSコンパイラへ渡す):
+
+- **exportされた値**に対し、代入ベースの型アサーションで検証するのが基本形(interface名自体をexportしていなくても、構造的に検証できる)。
+  ```ts
+  import { station } from "./solution";
+  const _name: string = station.name;
+  const _isTerminal: boolean = station.isTerminal;
+  ```
+- **union type・リテラル型が`string`などに広げられていないか**(例: `type WeatherType = "sunny" | "cloudy" | "rainy"`が`string`になっていないか)は、代入ベースの検証だけでは検出できない(広い型は狭いリテラルを常に受け入れてしまうため)。正しい値を代入して型が通ることに加え、**含まれないはずの値を代入し、`@ts-expect-error`でそれがコンパイルエラーになることを検証する**こと。
+  ```ts
+  import type { WeatherType } from "./solution";
+  const _sunny: WeatherType = "sunny"; // 正しい値は通る
+  // @ts-expect-error - WeatherTypeに含まれない文字列は代入できないはず
+  const _invalid: WeatherType = "snowy";
+  ```
+  型が正しく狭ければ`"snowy"`の代入がエラーになり`@ts-expect-error`が正しく機能する。型が`string`などに広げられていると`"snowy"`の代入はエラーにならず、`@ts-expect-error`が「未使用」エラーとして検出される。
+  - **`@ts-expect-error`は直後の1行にしか効かない**。複数行のオブジェクトリテラルの途中にあるプロパティを狙う場合は、そのプロパティの行の直前に置くこと(オブジェクトリテラル全体の宣言行の上に置いても、実際のエラーはプロパティの行に出るため効かない)
+
+### Sandpackまわりの注意点(実装時に判明した仕様)
+
+- **これらのファイルは、Next.jsプロジェクト自身の型チェック・lint対象から除外すること**。`tsconfig.json`・`eslint.config.mjs`の除外設定(`content/**/*.solution.ts`・`.test.ts`・`.typecheck.ts`)に新しいパターンが含まれているか確認する
 - **`test-ts`テンプレートのテストランナーは、`customSetup.entry`を無視し、常に`/add.test.ts`という固定の仮想パスを実行対象として探す**(ドキュメント化されていない挙動)。実ファイル名は`{exercise_id}.test.ts`のままでよいが、Sandpackに渡す際は`/add.test.ts`という固定パスにマッピングする処理を通すこと。詳細は`src/lib/curriculum/grading.ts`の実装を参照
 - **`SandpackTests`の`initMode`は、既定値`"lazy"`のままだとPreview非表示構成で発火しないことがある**。`initMode: "immediate"`を明示すること
-- **`onComplete`コールバックはレンダー中に呼ばれるため、直接`setState`するとReactの警告が出る**。`setTimeout`で1ティックずらしてから状態を更新すること(`src/components/SandpackGrader.tsx`に実装例あり)
-- テスト合格を検知したら、既存の`updateExerciseStatus`(Server Action)を呼び出し、`status: "cleared"`として自動記録する。手動でのステータス切り替えUIと共存させてよい(自動採点に対応してない演習は、引き続き手動切り替えのままでよい)
+- **生徒が今編集中のコードは`useSandpack()`の`sandpack.files[...].code`ではなく`useActiveCode()`で取得すること**。前者はキーストロークのたびには更新されず、古い(初期テンプレートの)内容を保持し続けることがあり、サーバーに送信すると常に「exportが存在しないファイル」というエラーになる
+- **`SandpackTests`の`onComplete`は、渡すコールバックを再レンダーのたびに差し替えても、内部で古い参照(古いクロージャ)を呼び続けることがある**。そのため送信ガード(二重送信防止)を`status`のようなpropsやクロージャ経由の値で行うと機能しないことがある。`useRef`で状態を持ち、古いクロージャから呼ばれても正しく参照できるようにすること(`src/components/SandpackGrader.tsx`の`submittedRef`を参照)
+- **生のJest出力(テストコードの中身・スタックトレース・PASS/FAIL件数のサマリー行)は演習の答えが透けて見えるため、画面には出さないこと**。`SandpackTests`の`hideTestsAndSupressLogs`propは個別テストの詳細しか隠せず、ヘッダーやサマリー行は隠せないため、`<div style={{ display: "none" }}>`で丸ごと囲んで完全に非表示にし、代わりに自前の簡易メッセージを表示する
+- テスト失敗時(未着手・実装途中いずれも)は「まだテストが通っていません。実装を見直してみましょう。」という汎用メッセージのみ表示し、一度実行時テストがPASSした後にサーバー側の型チェックで落ちた場合だけ、具体的な型エラーメッセージを表示する(こちらは学習上有益なため区別している)
+- **`onComplete`コールバックはレンダー中に呼ばれるため、直接`setState`するとReactの警告が出る**。`setTimeout`で1ティックずらしてから状態を更新すること
+- テスト合格(型チェックがある演習は型チェックも合格)を検知したら、`submitGradedExercise`(Server Action)を呼び出し、`status: "cleared"`として自動記録する。手動でのステータス切り替えUIと共存させてよい(自動採点に対応してない演習は、引き続き手動切り替えのままでよい)
+
+### 開発中の動作確認について
+
+- `SandpackTests`は実は`https://{version}-sandpack.codesandbox.io/`という外部(CodeSandbox社ホスティング)のiframeの中でテストを実行している。このため`SandpackGrader.tsx`やコンテンツを編集した際、通常のリロードでは変更が反映されず、ハードリロード(Cmd+Shift+R)が必要になることがある(Fast Refreshとこの外部iframeの組み合わせによる開発時特有の制限で、本番には影響しない)
+- **稼働中の`next dev`サーバーと同じプロジェクトディレクトリで`npm run build`(本番ビルド)を実行しないこと**。`.next`ディレクトリを共有しているため、本番ビルドが`.next`を本番用の構造で上書きし、動いている`next dev`が500エラーを返すようになる(実際にこれで開発サーバーを壊した事例あり)。動作確認は`npx tsc --noEmit`・`npm run lint`で十分であり、ブラウザでの実機確認は稼働中の`next dev`にそのまま接続して行うこと
