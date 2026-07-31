@@ -52,3 +52,17 @@ export function loadGradingFiles(exerciseId: string): GradingFiles | null {
 
   return { solution, test };
 }
+
+// 型定義そのものの正しさが問われる演習にだけ用意する、任意のコンパイルチェック用
+// ファイル({exercise_id}.typecheck.ts)。存在しない演習ではnullを返す
+// (Sandpackの実行時テストのみで採点する)。
+export function loadTypeCheckSource(exerciseId: string): string | null {
+  const entry = GRADED_EXERCISES.find((e) => e.exerciseId === exerciseId);
+  if (!entry) return null;
+
+  const dir = path.join(process.cwd(), "content", entry.chapterDir);
+  const typeCheckPath = path.join(dir, `${exerciseId}.typecheck.ts`);
+  if (!fs.existsSync(typeCheckPath)) return null;
+
+  return fs.readFileSync(typeCheckPath, "utf-8");
+}

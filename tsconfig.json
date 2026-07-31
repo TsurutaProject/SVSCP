@@ -33,6 +33,7 @@
   "exclude": [
     "node_modules",
     "content/**/*.solution.ts",
-    "content/**/*.test.ts"
+    "content/**/*.test.ts",
+    "content/**/*.typecheck.ts"
   ]
 }

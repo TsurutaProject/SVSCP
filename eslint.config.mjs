@@ -16,6 +16,7 @@ const eslintConfig = defineConfig([
     // 実行される想定のため、このプロジェクトのlint対象外にする。
     "content/**/*.solution.ts",
     "content/**/*.test.ts",
+    "content/**/*.typecheck.ts",
   ]),
 ]);
 
