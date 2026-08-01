@@ -1,0 +1,179 @@
+/*
+ * globals.css で `* { margin: 0; padding: 0 }` のリセットをかけているため、
+ * MDX本文はそのままだと見出し・段落・リストがすべて詰まって読めない。
+ * 教材本文まわりだけ、ここで読みやすい間隔と装飾を当て直している。
+ */
+
+.page {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+  line-height: 1.8;
+}
+
+.breadcrumb {
+  font-size: 0.875rem;
+  opacity: 0.75;
+  margin-bottom: 0.75rem;
+}
+
+.breadcrumb a {
+  text-decoration: underline;
+}
+
+.title {
+  font-size: 1.875rem;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+}
+
+.chapterLabel {
+  font-size: 0.875rem;
+  opacity: 0.75;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1.5rem 0 2rem;
+}
+
+.actionLink {
+  display: inline-block;
+  border: 1px solid currentColor;
+  border-radius: 0.375rem;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.9375rem;
+}
+
+/* --- ここから MDX 本文 --- */
+
+.prose > * + * {
+  margin-top: 1rem;
+}
+
+.prose h2 {
+  font-size: 1.5rem;
+  line-height: 1.4;
+  margin-top: 2.5rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+}
+
+.prose h3 {
+  font-size: 1.25rem;
+  line-height: 1.5;
+  margin-top: 2rem;
+}
+
+.prose h4 {
+  font-size: 1.0625rem;
+  margin-top: 1.5rem;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.5rem;
+}
+
+.prose ul {
+  list-style: disc;
+}
+
+.prose ol {
+  list-style: decimal;
+}
+
+.prose li + li {
+  margin-top: 0.35rem;
+}
+
+.prose a {
+  text-decoration: underline;
+}
+
+.prose strong {
+  font-weight: 700;
+}
+
+/* インラインコード */
+.prose code {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: 0.25rem;
+  padding: 0.15em 0.4em;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.9em;
+}
+
+/* コードブロック。横に長いコードはブロック内でスクロールさせる */
+.prose pre {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  overflow-x: auto;
+  line-height: 1.6;
+}
+
+.prose pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: 0.875rem;
+}
+
+/* 「解答を見る」などの折りたたみ */
+.prose details {
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+}
+
+.prose details[open] {
+  padding-bottom: 1rem;
+}
+
+.prose summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.prose details > * + * {
+  margin-top: 0.75rem;
+}
+
+.prose hr {
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  margin: 2rem 0;
+}
+
+.prose blockquote {
+  border-left: 3px solid color-mix(in srgb, currentColor 30%, transparent);
+  padding-left: 1rem;
+  opacity: 0.9;
+}
+
+/* 表は横に長くなりがちなので、はみ出す場合だけスクロールさせる */
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.prose table {
+  width: 100%;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  font-size: 0.9375rem;
+}
+
+.nav a {
+  text-decoration: underline;
+}

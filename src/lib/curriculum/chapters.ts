@@ -12,26 +12,31 @@ export const chapters: ChapterMeta[] = [
   {
     id: "ch0",
     title: "HTML/CSS",
+    contentDir: "ch0-html-css",
     exercises: ch0Exercises,
   },
   {
     id: "ch1",
     title: "JS/TS基礎",
+    contentDir: "ch1-js-ts",
     exercises: ch1Exercises,
   },
   {
     id: "ch2",
     title: "React基礎",
+    contentDir: "ch2-react",
     exercises: ch2Exercises,
   },
   {
     id: "ch3",
     title: "実践編",
+    contentDir: "ch3-practice",
     exercises: ch3Exercises,
   },
   {
     id: "ch4",
     title: "非同期+Next.js",
+    contentDir: "ch4-nextjs",
     exercises: ch4Exercises,
   },
 ];

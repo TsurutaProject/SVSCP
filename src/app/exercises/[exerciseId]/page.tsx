@@ -36,6 +36,8 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
     <main>
       <p>
         <Link href="/">← 進捗ボードに戻る</Link>
+        {" | "}
+        <Link href={`/lessons/${exerciseId}`}>教材を読む</Link>
       </p>
       <h1>{exercise.title}</h1>
 

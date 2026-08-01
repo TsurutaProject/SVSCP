@@ -46,8 +46,13 @@ export function MyExerciseProgress({ chapters, progressRows }: MyExerciseProgres
                       {exercise.title}: {STATUS_LABELS[status]}
                     </button>
                   </form>
+                  {" "}
+                  <Link href={`/lessons/${exercise.id}`}>教材を読む</Link>
                   {isGraded(exercise.id) && (
-                    <Link href={`/exercises/${exercise.id}`}>採点にチャレンジ</Link>
+                    <>
+                      {" | "}
+                      <Link href={`/exercises/${exercise.id}`}>採点にチャレンジ</Link>
+                    </>
                   )}
                 </li>
               );

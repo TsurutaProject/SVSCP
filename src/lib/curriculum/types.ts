@@ -8,5 +8,7 @@ export type ExerciseMeta = {
 export type ChapterMeta = {
   id: string;
   title: string;
+  /** content/ 配下のフォルダ名 (例: "ch1-js-ts")。MDX本文の読み込みに使う */
+  contentDir: string;
   exercises: ExerciseMeta[];
 };
