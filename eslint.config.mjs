@@ -15,8 +15,12 @@ const eslintConfig = defineConfig([
     // Sandpackの採点用に生成した演習ファイル。Sandpack側の独立した環境で
     // 実行される想定のため、このプロジェクトのlint対象外にする。
     "content/**/*.solution.ts",
+    "content/**/*.solution.tsx",
     "content/**/*.test.ts",
+    "content/**/*.test.tsx",
     "content/**/*.typecheck.ts",
+    "content/**/*.typecheck.tsx",
+    "content/**/*.preview.tsx",
   ]),
 ]);
 

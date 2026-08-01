@@ -103,9 +103,52 @@ order: 5
   型が正しく狭ければ`"snowy"`の代入がエラーになり`@ts-expect-error`が正しく機能する。型が`string`などに広げられていると`"snowy"`の代入はエラーにならず、`@ts-expect-error`が「未使用」エラーとして検出される。
   - **`@ts-expect-error`は直後の1行にしか効かない**。複数行のオブジェクトリテラルの途中にあるプロパティを狙う場合は、そのプロパティの行の直前に置くこと(オブジェクトリテラル全体の宣言行の上に置いても、実際のエラーはプロパティの行に出るため効かない)
 
+### Reactコンポーネントの演習(2章以降)
+
+`grading.ts`の登録時に`react: true`を付けると、拡張子が`.tsx`になり、Sandpackに`react`/`react-dom`の依存が渡される。用意するファイルは以下。
+
+- `{exercise_id}.solution.tsx` — 白紙式の雛形(方針は上と同じ)
+- `{exercise_id}.test.tsx` — 隠しテスト
+- `{exercise_id}.preview.tsx` — プレビュー用エントリ(任意だが、Reactの演習では原則用意する)
+
+**テストは`react-dom/server`の`renderToStaticMarkup`で「描画結果のHTML文字列」を検証すること。**
+
+```tsx
+import { renderToStaticMarkup } from "react-dom/server";
+import { SelfIntroduction } from "./solution";
+
+test("pタグを返している", () => {
+  expect(renderToStaticMarkup(<SelfIntroduction />)).toContain("<p>");
+});
+```
+
+- **Sandpackのテストランナーでは`react-dom`本体(DOM版)が使えない。** importするとテストがエラーも出さずハングする。React Testing Library・素の`ReactDOM.render`・`createRoot`・`environment`を`create-react-app`に差し替える方法まで一通り試したが、すべて同じ症状だった(React 17/18問わず)。使えるのは`react-dom/server`のみ
+- そのため**クリック操作や状態変化を伴う演習は自動採点にできない**(CLAUDE.mdの「今後の拡張候補」参照)。対応できるのは「描画結果を見れば判定できる」演習だけ
+- **`key`やイベントハンドラは描画後のHTMLに現れない。** これらを検証したい場合は、コンポーネントを直接呼び出して、返ってきたReact要素ツリーを辿って調べる(`element.key`、`element.props.onClick`を見る)。実例は`ch2-07-list-rendering-key.test.tsx`・`ch2-11-review-practice.test.tsx`を参照。ただしフックを使うコンポーネントは直接呼ぶと落ちるので、その場合は使えない
+- **`test-ts`テンプレートに最初から入っている`/add.test.ts`を必ず上書きすること。** 放置するとテンプレート付属のテスト(add関数のテスト)まで実行され、PASS件数に混入する。`.test.tsx`を使う場合は`/add.test.ts`を`export {};`で潰す
+
+### プレビュー(`{exercise_id}.preview.tsx`)
+
+生徒が書いたコンポーネントの見た目を、エディタの隣でリアルタイムに確認できるようにするためのエントリ。描画するコンポーネント名や渡すpropsは演習ごとに違うため、共通のエントリでは書けず、演習ごとに用意する。
+
+```tsx
+import { createRoot } from "react-dom/client";
+import { SelfIntroduction } from "./solution";
+
+const el = document.getElementById("root");
+if (el) {
+  createRoot(el).render(<SelfIntroduction />);
+}
+```
+
+- **プレビューは通常のブラウザ描画なので`react-dom`を使ってよい**(使えないのはテストランナーの中だけ)
+- propsを取る演習では、代表的な値を何パターンか並べて描画すると、条件分岐やリスト表示が意図通りか目で確認できる(`ch2-06`の実例を参照)
+- このファイルが存在する場合だけ`SandpackPreview`が表示され、バンドラーのエントリが`/index.tsx`に切り替わる。HTML側(`#root`を持つ`/index.html`)は`SandpackGrader`が自動で用意する
+- 未実装の状態ではプレビューに「Element type is invalid」等の英語のエラーが出る。これは想定内(実装が進むと消える)
+
 ### Sandpackまわりの注意点(実装時に判明した仕様)
 
-- **これらのファイルは、Next.jsプロジェクト自身の型チェック・lint対象から除外すること**。`tsconfig.json`・`eslint.config.mjs`の除外設定(`content/**/*.solution.ts`・`.test.ts`・`.typecheck.ts`)に新しいパターンが含まれているか確認する
+- **これらのファイルは、Next.jsプロジェクト自身の型チェック・lint対象から除外すること**。`tsconfig.json`・`eslint.config.mjs`の除外設定(`content/**/*.solution.{ts,tsx}`・`.test.{ts,tsx}`・`.typecheck.{ts,tsx}`・`.preview.tsx`)に新しいパターンが含まれているか確認する
 - **`test-ts`テンプレートのテストランナーは、`customSetup.entry`を無視し、常に`/add.test.ts`という固定の仮想パスを実行対象として探す**(ドキュメント化されていない挙動)。実ファイル名は`{exercise_id}.test.ts`のままでよいが、Sandpackに渡す際は`/add.test.ts`という固定パスにマッピングする処理を通すこと。詳細は`src/lib/curriculum/grading.ts`の実装を参照
 - **`SandpackTests`の`initMode`は、既定値`"lazy"`のままだとPreview非表示構成で発火しないことがある**。`initMode: "immediate"`を明示すること
 - **生徒が今編集中のコードは`useSandpack()`の`sandpack.files[...].code`ではなく`useActiveCode()`で取得すること**。前者はキーストロークのたびには更新されず、古い(初期テンプレートの)内容を保持し続けることがあり、サーバーに送信すると常に「exportが存在しないファイル」というエラーになる

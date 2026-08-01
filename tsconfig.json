@@ -33,7 +33,11 @@
   "exclude": [
     "node_modules",
     "content/**/*.solution.ts",
+    "content/**/*.solution.tsx",
     "content/**/*.test.ts",
-    "content/**/*.typecheck.ts"
+    "content/**/*.test.tsx",
+    "content/**/*.typecheck.ts",
+    "content/**/*.typecheck.tsx",
+    "content/**/*.preview.tsx"
   ]
 }

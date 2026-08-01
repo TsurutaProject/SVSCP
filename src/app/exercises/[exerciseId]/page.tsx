@@ -59,6 +59,8 @@ function SandpackGraderSection({ exerciseId }: { exerciseId: string }) {
       exerciseId={exerciseId}
       solutionStarter={files.solution}
       testCode={files.test}
+      isReact={files.isReact}
+      previewCode={files.preview}
     />
   );
 }

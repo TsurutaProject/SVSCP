@@ -5,8 +5,10 @@ import {
   SandpackProvider,
   SandpackLayout,
   SandpackCodeEditor,
+  SandpackPreview,
   SandpackTests,
   useActiveCode,
+  type SandpackFiles,
   type SandpackOptions,
 } from "@codesandbox/sandpack-react";
 import { submitGradedExercise } from "@/app/actions";
@@ -15,14 +17,53 @@ type SandpackGraderProps = {
   exerciseId: string;
   solutionStarter: string;
   testCode: string;
+  // Reactコンポーネントの演習(ch2以降)かどうか。trueなら .tsx 扱いになり、
+  // react/react-domの依存をSandpackに渡す。
+  isReact?: boolean;
+  // プレビュー用エントリ({exercise_id}.preview.tsx)の中身。
+  // 渡された場合だけ、エディタの隣に実際の描画結果を表示する。
+  previewCode?: string | null;
 };
 
+// プレビュー用のHTML。プレビューエントリはこの #root に描画する。
+const PREVIEW_HTML = `<!DOCTYPE html>
+<html>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
+`;
+
 // propsに依存しないため、モジュールレベルの定数として1つの参照に固定する。
+// (レンダーのたびに新しいオブジェクトを渡すとSandpackがエディタをリセットするため)
 const SANDPACK_OPTIONS: SandpackOptions = {
   visibleFiles: ["/solution.ts"],
   activeFile: "/solution.ts",
   initMode: "immediate",
   autorun: true,
+};
+
+const SANDPACK_OPTIONS_REACT: SandpackOptions = {
+  visibleFiles: ["/solution.tsx"],
+  activeFile: "/solution.tsx",
+  initMode: "immediate",
+  autorun: true,
+};
+
+// Reactの演習でSandpackに追加インストールさせる依存。
+// テストは react-dom/server の renderToStaticMarkup を使う(理由はgrading.tsのコメント参照)。
+const REACT_SETUP = {
+  dependencies: {
+    react: "^18.2.0",
+    "react-dom": "^18.2.0",
+  },
+};
+
+// プレビューを出す場合は、バンドラーのエントリをプレビュー用ファイルに向ける。
+// (テストの検出はファイル名の正規表現で行われるため、entryを変えても影響しない)
+const REACT_SETUP_WITH_PREVIEW = {
+  ...REACT_SETUP,
+  entry: "/index.tsx",
 };
 
 // @codesandbox/sandpack-react は SandpackTests の onComplete が受け取る
@@ -168,7 +209,13 @@ function GradingRunner({ exerciseId, status, typeErrors, onSubmit, onFail }: Gra
   );
 }
 
-export function SandpackGrader({ exerciseId, solutionStarter, testCode }: SandpackGraderProps) {
+export function SandpackGrader({
+  exerciseId,
+  solutionStarter,
+  testCode,
+  isReact = false,
+  previewCode = null,
+}: SandpackGraderProps) {
   const [status, setStatus] = useState<GradingStatus>("idle");
   const [typeErrors, setTypeErrors] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
@@ -178,13 +225,33 @@ export function SandpackGrader({ exerciseId, solutionStarter, testCode }: Sandpa
   // (Server Action内のrevalidatePathにより、このページ自身もサーバー側で
   // 再レンダーされてSandpackGraderが再実行されるため、内容が同じでも
   // 参照を安定させておく必要がある)
-  const files = useMemo(
-    () => ({
+  const files = useMemo<SandpackFiles>(() => {
+    if (isReact) {
+      const reactFiles: SandpackFiles = {
+        "/solution.tsx": { code: solutionStarter },
+        "/add.test.tsx": { code: testCode, hidden: true },
+        // test-tsテンプレートに最初から入っている /add.test.ts をそのままにすると、
+        // テンプレート付属のテスト(add関数のテスト)まで実行されてPASS件数に
+        // 混入するため、中身を空のモジュールで上書きして無害化する。
+        "/add.test.ts": { code: "export {};\n", hidden: true },
+      };
+
+      if (previewCode) {
+        reactFiles["/index.tsx"] = { code: previewCode, hidden: true };
+        reactFiles["/index.html"] = { code: PREVIEW_HTML, hidden: true };
+      }
+
+      return reactFiles;
+    }
+
+    const tsFiles: SandpackFiles = {
       "/solution.ts": { code: solutionStarter },
       "/add.test.ts": { code: testCode, hidden: true },
-    }),
-    [solutionStarter, testCode],
-  );
+    };
+    return tsFiles;
+  }, [solutionStarter, testCode, isReact, previewCode]);
+
+  const showPreview = isReact && previewCode !== null;
 
   const handleFail = () => {
     setTypeErrors([]);
@@ -218,10 +285,14 @@ export function SandpackGrader({ exerciseId, solutionStarter, testCode }: Sandpa
         // {exercise_id}.test.ts のままでも、Sandpackへ渡す際はこの固定の
         // 仮想パスにマッピングする。
         files={files}
-        options={SANDPACK_OPTIONS}
+        options={isReact ? SANDPACK_OPTIONS_REACT : SANDPACK_OPTIONS}
+        {...(isReact
+          ? { customSetup: showPreview ? REACT_SETUP_WITH_PREVIEW : REACT_SETUP }
+          : {})}
       >
         <SandpackLayout>
           <SandpackCodeEditor showLineNumbers />
+          {showPreview && <SandpackPreview />}
           <GradingRunner
             exerciseId={exerciseId}
             status={status}
