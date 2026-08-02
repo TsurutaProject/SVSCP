@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { compileMDX } from "next-mdx-remote/rsc";
+import remarkGfm from "remark-gfm";
 import { createClient } from "@/lib/supabase/server";
 import { getTeamMemberByUserId } from "@/lib/supabase/queries/teamMembers";
 import { loadLesson, findNeighbours } from "@/lib/curriculum/lessons";
@@ -45,8 +46,13 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const { content } = await compileMDX({
     source: lesson.source,
     components: mdxComponents,
-    // MDXの先頭にあるfrontmatter(exercise_id/title/order)は本文として描画しない
-    options: { parseFrontmatter: true },
+    options: {
+      // MDXの先頭にあるfrontmatter(exercise_id/title/order)は本文として描画しない
+      parseFrontmatter: true,
+      // 素のMDXはGitHub Flavored Markdownのテーブル記法を解釈しないため、
+      // remark-gfmを入れて表(| 見出し | ... |)を描画できるようにする。
+      mdxOptions: { remarkPlugins: [remarkGfm] },
+    },
   });
 
   const { prev, next } = findNeighbours(exerciseId);
@@ -69,6 +75,17 @@ export default async function LessonPage({ params }: LessonPageProps) {
       )}
 
       <article className={styles.prose}>{content}</article>
+
+      {/* 演習(クリア条件)を読み終えた流れのまま採点に進めるよう、本文の直後にも
+          同じリンクを置く。ほぼ全ての教材はクリア条件で終わる構成のため、
+          本文の末尾がそのまま「クリア条件の下」になる。 */}
+      {isGraded(exerciseId) && (
+        <div className={styles.cta}>
+          <Link className={styles.ctaLink} href={`/exercises/${exerciseId}`}>
+            この演習の採点にチャレンジ →
+          </Link>
+        </div>
+      )}
 
       <nav className={styles.nav}>
         <span>

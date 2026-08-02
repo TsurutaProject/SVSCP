@@ -162,6 +162,47 @@
 
 .prose table {
   width: 100%;
+  font-size: 0.9375rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.prose th,
+.prose td {
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+.prose thead th {
+  background: var(--color-surface-2);
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.prose tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* 本文を読み終えた位置に置く、採点ページへの導線 */
+.cta {
+  margin-top: var(--space-6);
+}
+
+.ctaLink {
+  display: inline-block;
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-5);
+  font-weight: 700;
+}
+
+.ctaLink:hover {
+  opacity: 0.9;
 }
 
 .nav {
