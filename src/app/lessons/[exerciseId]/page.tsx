@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getTeamMemberByUserId } from "@/lib/supabase/queries/teamMembers";
 import { loadLesson, findNeighbours } from "@/lib/curriculum/lessons";
 import { isGraded } from "@/lib/curriculum/grading";
+import { hasPlayground } from "@/lib/curriculum/playgrounds";
 import styles from "./lesson.module.css";
 
 type LessonPageProps = {
@@ -57,6 +58,14 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
   const { prev, next } = findNeighbours(exerciseId);
 
+  // 自動採点に対応している演習は採点ページへ、対応していなくても練習用エディタが
+  // ある演習は「試す」ための入口として、同じ /exercises/{id} へ誘導する。
+  const exerciseLinkLabel = isGraded(exerciseId)
+    ? "この演習の採点にチャレンジ →"
+    : hasPlayground(exerciseId)
+      ? "この演習のコードを試す →"
+      : null;
+
   return (
     <main className={styles.page}>
       <p className={styles.breadcrumb}>
@@ -66,23 +75,23 @@ export default async function LessonPage({ params }: LessonPageProps) {
       <p className={styles.chapterLabel}>{lesson.chapter.title}</p>
       <h1 className={styles.title}>{lesson.exercise.title}</h1>
 
-      {isGraded(exerciseId) && (
+      {exerciseLinkLabel && (
         <div className={styles.actions}>
           <Link className={styles.actionLink} href={`/exercises/${exerciseId}`}>
-            この演習の採点にチャレンジ →
+            {exerciseLinkLabel}
           </Link>
         </div>
       )}
 
       <article className={styles.prose}>{content}</article>
 
-      {/* 演習(クリア条件)を読み終えた流れのまま採点に進めるよう、本文の直後にも
+      {/* 演習(クリア条件)を読み終えた流れのまま手を動かせるよう、本文の直後にも
           同じリンクを置く。ほぼ全ての教材はクリア条件で終わる構成のため、
           本文の末尾がそのまま「クリア条件の下」になる。 */}
-      {isGraded(exerciseId) && (
+      {exerciseLinkLabel && (
         <div className={styles.cta}>
           <Link className={styles.ctaLink} href={`/exercises/${exerciseId}`}>
-            この演習の採点にチャレンジ →
+            {exerciseLinkLabel}
           </Link>
         </div>
       )}

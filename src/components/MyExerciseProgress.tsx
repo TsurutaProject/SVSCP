@@ -4,6 +4,7 @@ import type { Database } from "@/lib/supabase/database.types";
 import type { ExerciseStatus } from "@/lib/supabase/queries/exerciseProgress";
 import { updateExerciseStatus } from "@/app/actions";
 import { isGraded } from "@/lib/curriculum/grading";
+import { hasPlayground } from "@/lib/curriculum/playgrounds";
 import styles from "./MyExerciseProgress.module.css";
 
 type ExerciseProgress = Database["public"]["Tables"]["exercise_progress"]["Row"];
@@ -54,11 +55,17 @@ export function MyExerciseProgress({ chapters, progressRows }: MyExerciseProgres
                     <Link className={styles.link} href={`/lessons/${exercise.id}`}>
                       教材を読む
                     </Link>
-                    {isGraded(exercise.id) && (
+                    {/* 自動採点に対応していない演習でも、練習用エディタがあれば
+                        そこへの入口を出す(遷移先は同じ /exercises/{id})。 */}
+                    {isGraded(exercise.id) ? (
                       <Link className={styles.link} href={`/exercises/${exercise.id}`}>
                         採点にチャレンジ
                       </Link>
-                    )}
+                    ) : hasPlayground(exercise.id) ? (
+                      <Link className={styles.link} href={`/exercises/${exercise.id}`}>
+                        コードを試す
+                      </Link>
+                    ) : null}
                   </span>
                 </li>
               );
