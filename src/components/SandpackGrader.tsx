@@ -9,6 +9,7 @@ import {
   SandpackPreview,
   SandpackTests,
   useActiveCode,
+  useSandpack,
   type SandpackFiles,
   type SandpackOptions,
 } from "@codesandbox/sandpack-react";
@@ -134,12 +135,13 @@ function isAllTestsPassed(specs: Record<string, TestSpecLike>): boolean {
   return totals.fail === 0 && totals.pass > 0;
 }
 
-type GradingStatus = "idle" | "failed" | "submitting" | "cleared" | "type-error";
+type GradingStatus = "idle" | "running" | "failed" | "submitting" | "cleared" | "type-error";
 
 type GradingRunnerProps = {
   status: GradingStatus;
   onSubmit: (solutionCode: string) => void;
   onFail: () => void;
+  onRunRequest: () => void;
 };
 
 // SandpackProviderの子として描画し、useActiveCode()でエディタの「今の」中身を
@@ -158,8 +160,9 @@ type GradingRunnerProps = {
 // ずっと初回マウント時のstatus="idle"が見え続けていた)。そのためstatusを
 // クロージャ経由(props)ではなくrefで読み、送信済みかどうかもrefで
 // 管理することで、古いクロージャから呼ばれても正しくガードできるようにする。
-function GradingRunner({ status, onSubmit, onFail }: GradingRunnerProps) {
+function GradingRunner({ status, onSubmit, onFail, onRunRequest }: GradingRunnerProps) {
   const { code } = useActiveCode();
+  const { dispatch } = useSandpack();
   const codeRef = useRef(code);
   const submittedRef = useRef(false);
 
@@ -173,6 +176,14 @@ function GradingRunner({ status, onSubmit, onFail }: GradingRunnerProps) {
       submittedRef.current = false;
     }
   }, [status]);
+
+  // 「採点する」ボタン。SandpackTestsのwatchModeを切ってあるので、テストは
+  // ここから明示的に実行を指示したときだけ走る。
+  const handleRun = () => {
+    submittedRef.current = false;
+    onRunRequest();
+    dispatch({ type: "run-all-tests" });
+  };
 
   // SandpackTestsのレンダー中にonCompleteが呼ばれるため、setStateは
   // 次のティックにずらす(「Cannot update a component while rendering
@@ -208,10 +219,29 @@ function GradingRunner({ status, onSubmit, onFail }: GradingRunnerProps) {
   // なお判定メッセージをここ(SandpackLayoutの中)で描画すると、
   // Sandpackのflexレイアウトの子要素になってエディタの横に細長く出てしまうため、
   // 表示は親側(SandpackProviderの外)に置いている。
+  //
+  // watchMode={false} にしているのが要点。既定(true)だとコードを変えるたびに
+  // 自動でテストが走るため、「今どの状態で判定されたのか」が生徒に分かりにくい。
+  // ボタンを押したときだけ走らせることで、判定のタイミングを明示する。
   return (
-    <div style={{ display: "none" }}>
-      <SandpackTests onComplete={handleComplete} hideTestsAndSupressLogs />
-    </div>
+    <>
+      <div style={{ display: "none" }}>
+        <SandpackTests onComplete={handleComplete} hideTestsAndSupressLogs watchMode={false} />
+      </div>
+      <div className={styles.runBar}>
+        <button
+          className={styles.runButton}
+          type="button"
+          onClick={handleRun}
+          disabled={status === "running" || status === "submitting"}
+        >
+          {status === "running" ? "採点中…" : "採点する"}
+        </button>
+        <span className={styles.runHint}>
+          コードを書いたら押してください(押すまで判定は変わりません)。
+        </span>
+      </div>
+    </>
   );
 }
 
@@ -264,6 +294,12 @@ export function SandpackGrader({
     setStatus("failed");
   };
 
+  // 「採点する」が押されたら、前回の結果を消して実行中の状態にする。
+  const handleRunRequest = () => {
+    setTypeErrors([]);
+    setStatus("running");
+  };
+
   const handleSubmit = (solutionCode: string) => {
     setStatus("submitting");
     startTransition(async () => {
@@ -303,7 +339,6 @@ export function SandpackGrader({
           <SandpackLayout>
             <SandpackCodeEditor showLineNumbers />
             {showPreview ? <SandpackPreview /> : <SandpackConsole />}
-            <GradingRunner status={status} onSubmit={handleSubmit} onFail={handleFail} />
           </SandpackLayout>
 
           {/* プレビューがある場合(Reactの演習)は、エディタ・プレビューと3列に
@@ -317,13 +352,30 @@ export function SandpackGrader({
               </SandpackLayout>
             </div>
           )}
+
+          {/* 隠しテストと「採点する」ボタン。SandpackLayoutの中に置くと
+              ボタンがレイアウトの1列として横に並んでしまうため、外に出している。 */}
+          <GradingRunner
+            status={status}
+            onSubmit={handleSubmit}
+            onFail={handleFail}
+            onRunRequest={handleRunRequest}
+          />
         </SandpackProvider>
       </div>
 
       {status === "failed" && (
-        <p role="status" className={`${styles.message} ${styles.messageInfo}`}>
-          まだテストが通っていません。実装を見直してみましょう。
-        </p>
+        <div role="status" className={`${styles.message} ${styles.messageInfo}`}>
+          <p>まだテストが通っていません。実装を見直してみましょう。</p>
+          {/* 白紙式の雛形ではexportの付け忘れが起きやすく、しかも「自分の
+              console.logは正しく出ているのに判定だけ通らない」という
+              分かりにくい詰まり方をするため、ヒントとして常に添えておく。 */}
+          <p className={styles.hint}>
+            ヒント: 関数や型に <code>export</code> を付け忘れていませんか?
+            テストは <code>import</code> で読み込むため、<code>export</code> がないと
+            見つけられません。
+          </p>
+        </div>
       )}
 
       {status === "type-error" && (
