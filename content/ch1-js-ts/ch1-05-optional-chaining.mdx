@@ -13,7 +13,7 @@ const user = { profile: null };
 console.log(user.profile.name); // Error: Cannot read properties of null
 ```
 
-**オプショナルチェイニング(`?.`)**を使うと、「途中の値がなければ、そこで安全に`undefined`を返す」という書き方ができる:
+**オプショナルチェイニング(`?.`)** を使うと、「途中の値がなければ、そこで安全に`undefined`を返す」という書き方ができる:
 
 ```js
 console.log(user.profile?.name); // undefined(エラーにならない)

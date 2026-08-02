@@ -36,7 +36,7 @@ order: 10
 <details>
 <summary>解答を見る</summary>
 
-**問題**:`.badge`に`position: absolute`が指定されているが、親要素の`.card`には`position`が何も指定されていない(デフォルトの`static`のまま)。`position: absolute`は「直近の、`position`が`static`以外の親要素」を基準にして配置されるため、このままだと`.card`ではなく、**もっと上の階層(画面全体に近いどこか)**を基準に配置されてしまい、意図した「カードの右上」には表示されない。
+**問題**:`.badge`に`position: absolute`が指定されているが、親要素の`.card`には`position`が何も指定されていない(デフォルトの`static`のまま)。`position: absolute`は「直近の、`position`が`static`以外の親要素」を基準にして配置されるため、このままだと`.card`ではなく、**もっと上の階層(画面全体に近いどこか)** を基準に配置されてしまい、意図した「カードの右上」には表示されない。
 
 **修正例**:
 
