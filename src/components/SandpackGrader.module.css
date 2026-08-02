@@ -1,0 +1,60 @@
+.grader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Sandpack本体は自前のテーマを持つので、外側の角丸と影だけ合わせる */
+.editor {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+/* 判定メッセージ共通 */
+.message {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-left-width: 4px;
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-size: 0.9375rem;
+}
+
+.messageInfo {
+  background: var(--color-surface);
+  border-left-color: var(--color-fg-muted);
+  color: var(--color-fg-muted);
+}
+
+.messageSuccess {
+  background: var(--color-success-soft);
+  border-color: var(--color-success);
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+.messageError {
+  background: var(--color-warning-soft);
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+
+.errorList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.errorList li {
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  overflow-x: auto;
+}

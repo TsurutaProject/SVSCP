@@ -1,0 +1,119 @@
+.chapters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.chapterTitle {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-fg-muted);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-3);
+}
+
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* 演習1件のカード。左にステータス切替ボタン、右にリンクを寄せる */
+.item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.item:hover {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ボタンを包むだけのform。カード内で幅を取れるようにする */
+.form {
+  flex: 1 1 16rem;
+  min-width: 0;
+  display: flex;
+}
+
+/* ステータス切替ボタン。見た目は「文字＋バッジ」で、枠は出さない */
+.statusButton {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  margin-left: calc(var(--space-2) * -1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+}
+
+.statusButton:hover {
+  background: var(--color-surface-2);
+}
+
+.exerciseTitle {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.badge {
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.badge[data-status="not_started"] {
+  color: var(--color-fg-muted);
+  background: var(--color-surface-2);
+  border-color: var(--color-border);
+}
+
+.badge[data-status="in_progress"] {
+  color: var(--color-warning);
+  background: var(--color-warning-soft);
+  border-color: currentColor;
+}
+
+.badge[data-status="cleared"] {
+  color: var(--color-success);
+  background: var(--color-success-soft);
+  border-color: currentColor;
+}
+
+.links {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 0.8125rem;
+}
+
+.link {
+  color: var(--color-accent);
+  white-space: nowrap;
+}
+
+.link:hover {
+  text-decoration: underline;
+}

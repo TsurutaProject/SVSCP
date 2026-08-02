@@ -1,0 +1,58 @@
+/* 章が増えると横に長くなるため、はみ出す時だけ表の中でスクロールさせる */
+.wrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  font-size: 0.9375rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.table th,
+.table td {
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.table thead th {
+  background: var(--color-surface-2);
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+  font-weight: 600;
+}
+
+.table tbody tr:last-child th,
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* メンバー名の列 */
+.memberCell {
+  font-weight: 600;
+}
+
+/* 自分の行はうっすら色を付けて見つけやすくする */
+.selfRow {
+  background: var(--color-accent-soft);
+}
+
+.selfLabel {
+  margin-left: var(--space-1);
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--color-fg-muted);
+}
+
+.count {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 全問クリアした章だけ色を変える */
+.countComplete {
+  color: var(--color-success);
+  font-weight: 700;
+}

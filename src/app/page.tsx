@@ -6,6 +6,7 @@ import { chapters } from "@/lib/curriculum/chapters";
 import { SignOutButton } from "@/components/SignOutButton";
 import { ProgressBoard } from "@/components/ProgressBoard";
 import { MyExerciseProgress } from "@/components/MyExerciseProgress";
+import styles from "./page.module.css";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -32,12 +33,14 @@ export default async function Home() {
   );
 
   return (
-    <main>
-      <h1>ようこそ、{teamMember.display_name}さん</h1>
-      <SignOutButton />
+    <main className={styles.page}>
+      <div className={styles.header}>
+        <h1 className={styles.greeting}>ようこそ、{teamMember.display_name}さん</h1>
+        <SignOutButton />
+      </div>
 
-      <section>
-        <h2>進捗ボード</h2>
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>進捗ボード</h2>
         <ProgressBoard
           chapters={chapters}
           teamMembers={teamMembers}
@@ -46,9 +49,11 @@ export default async function Home() {
         />
       </section>
 
-      <section>
-        <h2>自分の演習進捗</h2>
-        <p>クリックでステータスが切り替わります(未着手→進行中→クリア済み→未着手)。</p>
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>自分の演習進捗</h2>
+        <p className={styles.sectionNote}>
+          クリックでステータスが切り替わります(未着手→進行中→クリア済み→未着手)。
+        </p>
         <MyExerciseProgress chapters={chapters} progressRows={myProgressRows} />
       </section>
     </main>

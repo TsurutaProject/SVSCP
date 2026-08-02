@@ -12,6 +12,7 @@ import {
   type SandpackOptions,
 } from "@codesandbox/sandpack-react";
 import { submitGradedExercise } from "@/app/actions";
+import styles from "./SandpackGrader.module.css";
 
 type SandpackGraderProps = {
   exerciseId: string;
@@ -116,9 +117,7 @@ function isAllTestsPassed(specs: Record<string, TestSpecLike>): boolean {
 type GradingStatus = "idle" | "failed" | "submitting" | "cleared" | "type-error";
 
 type GradingRunnerProps = {
-  exerciseId: string;
   status: GradingStatus;
-  typeErrors: string[];
   onSubmit: (solutionCode: string) => void;
   onFail: () => void;
 };
@@ -139,7 +138,7 @@ type GradingRunnerProps = {
 // ずっと初回マウント時のstatus="idle"が見え続けていた)。そのためstatusを
 // クロージャ経由(props)ではなくrefで読み、送信済みかどうかもrefで
 // 管理することで、古いクロージャから呼ばれても正しくガードできるようにする。
-function GradingRunner({ exerciseId, status, typeErrors, onSubmit, onFail }: GradingRunnerProps) {
+function GradingRunner({ status, onSubmit, onFail }: GradingRunnerProps) {
   const { code } = useActiveCode();
   const codeRef = useRef(code);
   const submittedRef = useRef(false);
@@ -179,33 +178,20 @@ function GradingRunner({ exerciseId, status, typeErrors, onSubmit, onFail }: Gra
     }, 0);
   };
 
+  // 生のJest出力(テストコードの中身やスタックトレース、PASS/FAIL件数の
+  // サマリー行)は演習の答えが見えてしまうため画面には出さず、代わりに
+  // 親側の判定メッセージだけを見せる。
+  // hideTestsAndSupressLogsは個別テストの詳細のみを隠す設定で、
+  // ヘッダーやサマリー行までは隠せないため、display: noneで丸ごと
+  // 非表示にしつつ、onCompleteによる採点ロジックだけは裏側で動かす。
+  //
+  // なお判定メッセージをここ(SandpackLayoutの中)で描画すると、
+  // Sandpackのflexレイアウトの子要素になってエディタの横に細長く出てしまうため、
+  // 表示は親側(SandpackProviderの外)に置いている。
   return (
-    <>
-      {/* 生のJest出力(テストコードの中身やスタックトレース、PASS/FAIL件数の
-          サマリー行)は演習の答えが見えてしまうため画面には出さず、代わりに
-          下の簡易メッセージ/型エラーメッセージだけを見せる。
-          hideTestsAndSupressLogsは個別テストの詳細のみを隠す設定で、
-          ヘッダーやサマリー行までは隠せないため、display: noneで丸ごと
-          非表示にしつつ、onCompleteによる採点ロジックだけは裏側で動かす。 */}
-      <div style={{ display: "none" }}>
-        <SandpackTests onComplete={handleComplete} hideTestsAndSupressLogs />
-      </div>
-      {status === "failed" && (
-        <p role="status">まだテストが通っていません。実装を見直してみましょう。</p>
-      )}
-      {status === "type-error" && (
-        <div role="alert">
-          <p>
-            テストは通りましたが、型定義に問題があります(exercise_id: {exerciseId})。
-          </p>
-          <ul>
-            {typeErrors.map((error) => (
-              <li key={error}>{error}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </>
+    <div style={{ display: "none" }}>
+      <SandpackTests onComplete={handleComplete} hideTestsAndSupressLogs />
+    </div>
   );
 }
 
@@ -277,34 +263,50 @@ export function SandpackGrader({
   };
 
   return (
-    <div>
-      <SandpackProvider
-        template="test-ts"
-        // "test-ts" テンプレートのテストランナーは customSetup.entry を無視し、
-        // 常に /add.test.ts を実行対象として探すため、実ファイル名は
-        // {exercise_id}.test.ts のままでも、Sandpackへ渡す際はこの固定の
-        // 仮想パスにマッピングする。
-        files={files}
-        options={isReact ? SANDPACK_OPTIONS_REACT : SANDPACK_OPTIONS}
-        {...(isReact
-          ? { customSetup: showPreview ? REACT_SETUP_WITH_PREVIEW : REACT_SETUP }
-          : {})}
-      >
-        <SandpackLayout>
-          <SandpackCodeEditor showLineNumbers />
-          {showPreview && <SandpackPreview />}
-          <GradingRunner
-            exerciseId={exerciseId}
-            status={status}
-            typeErrors={typeErrors}
-            onSubmit={handleSubmit}
-            onFail={handleFail}
-          />
-        </SandpackLayout>
-      </SandpackProvider>
+    <div className={styles.grader}>
+      <div className={styles.editor}>
+        {/* theme="auto" はSandpackが描画時に window.matchMedia を読むため、
+            サーバー側(light)とクライアント側(dark)で出力がズレて
+            ハイドレーションエラーになる。エディタはSandpack既定のテーマのままにする。 */}
+        <SandpackProvider
+          template="test-ts"
+          // "test-ts" テンプレートのテストランナーは customSetup.entry を無視し、
+          // 常に /add.test.ts を実行対象として探すため、実ファイル名は
+          // {exercise_id}.test.ts のままでも、Sandpackへ渡す際はこの固定の
+          // 仮想パスにマッピングする。
+          files={files}
+          options={isReact ? SANDPACK_OPTIONS_REACT : SANDPACK_OPTIONS}
+          {...(isReact
+            ? { customSetup: showPreview ? REACT_SETUP_WITH_PREVIEW : REACT_SETUP }
+            : {})}
+        >
+          <SandpackLayout>
+            <SandpackCodeEditor showLineNumbers />
+            {showPreview && <SandpackPreview />}
+            <GradingRunner status={status} onSubmit={handleSubmit} onFail={handleFail} />
+          </SandpackLayout>
+        </SandpackProvider>
+      </div>
+
+      {status === "failed" && (
+        <p role="status" className={`${styles.message} ${styles.messageInfo}`}>
+          まだテストが通っていません。実装を見直してみましょう。
+        </p>
+      )}
+
+      {status === "type-error" && (
+        <div role="alert" className={`${styles.message} ${styles.messageError}`}>
+          <p>テストは通りましたが、型定義に問題があります(exercise_id: {exerciseId})。</p>
+          <ul className={styles.errorList}>
+            {typeErrors.map((error) => (
+              <li key={error}>{error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {status === "cleared" && (
-        <p role="status">
+        <p role="status" className={`${styles.message} ${styles.messageSuccess}`}>
           {isPending ? "記録中…" : "🎉 テストに合格しました。クリア済みとして記録しました。"}
         </p>
       )}

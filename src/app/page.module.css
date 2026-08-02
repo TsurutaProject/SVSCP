@@ -1,0 +1,49 @@
+.page {
+  width: 100%;
+  max-width: var(--width-content);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5) var(--space-7);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* 見出しとログアウトを左右に振り分ける */
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.greeting {
+  font-size: 1.5rem;
+}
+
+/* 各ブロックをカードとして独立させる */
+.section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-5);
+}
+
+/* セクション内は縦に一定間隔で流す(見出しのすぐ下の補足だけ詰める) */
+.section > * + * {
+  margin-top: var(--space-4);
+}
+
+.sectionTitle {
+  font-size: 1.125rem;
+}
+
+.sectionNote {
+  font-size: 0.875rem;
+  color: var(--color-fg-muted);
+}
+
+.sectionTitle + .sectionNote {
+  margin-top: var(--space-1);
+}
