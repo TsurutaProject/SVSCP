@@ -1,0 +1,32 @@
+<!-- .card を position: relative にし、.badge を position: absolute で
+     top: 8px; right: 8px; に指定して、カードの右上にバッジを重ねて表示してください。 -->
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      .card {
+        width: 240px;
+        padding: 16px;
+        background: #ffffff;
+        border: 1px solid #ccc;
+      }
+      .badge {
+        background: #ef6c00;
+        color: #ffffff;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+      }
+
+      /* ここに position の指定を書いてみましょう */
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <span class="badge">NEW</span>
+      <p>ショートケーキ</p>
+      <p>500円</p>
+    </div>
+  </body>
+</html>

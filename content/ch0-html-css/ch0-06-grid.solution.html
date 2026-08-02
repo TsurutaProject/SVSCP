@@ -1,0 +1,28 @@
+<!-- .dashboard に display: grid と
+     grid-template-columns: minmax(200px, 250px) 1fr を指定して、
+     「左に固定幅寄りのサイドバー、右に残り全部のメインエリア」の2カラムにしてください。 -->
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      /* どこが何のエリアか分かるように色だけ付けています */
+      .sidebar {
+        background: #dbe4f0;
+        padding: 12px;
+      }
+      .main {
+        background: #f0e6db;
+        padding: 12px;
+      }
+
+      /* ここにCSSを書いてみましょう */
+    </style>
+  </head>
+  <body>
+    <div class="dashboard">
+      <div class="sidebar">サイドバー</div>
+      <div class="main">メインエリア</div>
+    </div>
+  </body>
+</html>

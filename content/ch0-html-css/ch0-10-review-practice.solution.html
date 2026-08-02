@@ -1,0 +1,57 @@
+<!-- レビュー演習:3つのコード例には、それぞれ問題が1つずつ潜んでいます。
+     何が問題かを考えて、修正したCSSに書き換えてください。
+     教材の「解答を見る」と照らし合わせながら、右側の表示で結果を確かめられます。 -->
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      /* --- コード例1: バッジがカードの右上に来ない --- */
+      .card {
+        padding: 16px;
+        border: 1px solid #ccc;
+      }
+      .badge {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: #ef6c00;
+        color: #fff;
+      }
+
+      /* --- コード例2: z-indexが効かない --- */
+      .tooltip {
+        z-index: 100;
+        background: black;
+        color: white;
+      }
+      .overlay {
+        background: #9ccc65;
+        margin-top: -20px;
+        height: 40px;
+      }
+
+      /* --- コード例3: ボタンの間隔の付け方 --- */
+      .button-row {
+        display: flex;
+      }
+      .button {
+        margin: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <span class="badge">New</span>
+      <p>カードの中身</p>
+    </div>
+
+    <div class="tooltip">ツールチップ(手前に出したい)</div>
+    <div class="overlay">あとから来る要素</div>
+
+    <div class="button-row">
+      <button class="button">保存</button>
+      <button class="button">キャンセル</button>
+    </div>
+  </body>
+</html>

@@ -4,7 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getTeamMemberByUserId } from "@/lib/supabase/queries/teamMembers";
 import { findExerciseById } from "@/lib/curriculum/chapters";
 import { isGraded, loadGradingFiles } from "@/lib/curriculum/grading";
+import { hasPlayground, loadPlaygroundFiles } from "@/lib/curriculum/playgrounds";
 import { SandpackGrader } from "@/components/SandpackGrader";
+import { SandpackPlayground } from "@/components/SandpackPlayground";
 import styles from "./exercise.module.css";
 
 type ExercisePageProps = {
@@ -48,11 +50,23 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
 
       {isGraded(exerciseId) ? (
         <SandpackGraderSection exerciseId={exerciseId} />
+      ) : hasPlayground(exerciseId) ? (
+        <PlaygroundSection exerciseId={exerciseId} />
       ) : (
         <p className={styles.notice}>この演習の自動採点機能はまだ対応していません。</p>
       )}
     </main>
   );
+}
+
+// 自動採点はないが、書いたコードをその場で試せるようにするだけの簡易エディタ。
+function PlaygroundSection({ exerciseId }: { exerciseId: string }) {
+  const files = loadPlaygroundFiles(exerciseId);
+  if (!files) {
+    return <p className={styles.notice}>練習用エディタの読み込みに失敗しました。</p>;
+  }
+
+  return <SandpackPlayground kind={files.kind} starter={files.starter} />;
 }
 
 function SandpackGraderSection({ exerciseId }: { exerciseId: string }) {

@@ -158,6 +158,30 @@ if (el) {
 - **`onComplete`コールバックはレンダー中に呼ばれるため、直接`setState`するとReactの警告が出る**。`setTimeout`で1ティックずらしてから状態を更新すること
 - テスト合格(型チェックがある演習は型チェックも合格)を検知したら、`submitGradedExercise`(Server Action)を呼び出し、`status: "cleared"`として自動記録する。手動でのステータス切り替えUIと共存させてよい(自動採点に対応してない演習は、引き続き手動切り替えのままでよい)
 
+## 7. 自動採点なしの演習に、練習用エディタだけ付ける場合
+
+正誤判定は要らないが「書いたコードがその場で動くか試せる」ようにしたい演習には、
+`src/lib/curriculum/playgrounds.ts` にエントリを追加し、雛形ファイルを1つ置くだけでよい
+(`.test.ts` も `.typecheck.ts` も不要)。採点の仕組み(`grading.ts`)とは完全に別物で、
+同じ演習が両方に登録されることはない。
+
+種類(`kind`)ごとに、使うSandpackテンプレートと雛形の拡張子が決まっている。
+
+| kind | 用途 | テンプレート | 雛形ファイル | 右側に出るもの |
+|---|---|---|---|---|
+| `html` | HTML/CSS(ch0) | `static` | `{exercise_id}.solution.html` | 描画結果 |
+| `react` | Reactコンポーネント(ch1-13, ch2, ch3) | `react-ts` | `{exercise_id}.solution.tsx` | 描画結果 |
+| `ts` | TypeScript(ch4) | `vanilla-ts` | `{exercise_id}.solution.ts` | console.logの出力 |
+
+- **`html`は1ファイルで完結させる。** CSSを書かせる演習でも、`<style>`ブロックを含んだ
+  HTMLを1つ置けばよい(雛形を1演習1ファイルに統一するため)
+- **`react`の雛形は `export default` したものが描画される。** テンプレートの `/App.tsx` を
+  置き換える形で読み込まれるため、名前付きexportだけでは何も表示されない
+- **`ts`で`SandpackConsole`を使うときは必ず`standalone`を付けること。** これを付けないと
+  コンソールはコードを実行するiframeを持たず、ログが何も出ない(表示は出るので気づきにくい)
+- Next.js固有の演習(ファイル配置やServer Actionなど)は、そのままでは動かせない。
+  雛形のコメントでその旨を断ったうえで、ロジック部分だけ試せる形にしている
+
 ### 開発中の動作確認について
 
 - `SandpackTests`は実は`https://{version}-sandpack.codesandbox.io/`という外部(CodeSandbox社ホスティング)のiframeの中でテストを実行している。このため`SandpackGrader.tsx`やコンテンツを編集した際、通常のリロードでは変更が反映されず、ハードリロード(Cmd+Shift+R)が必要になることがある(Fast Refreshとこの外部iframeの組み合わせによる開発時特有の制限で、本番には影響しない)

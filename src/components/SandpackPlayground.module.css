@@ -1,0 +1,17 @@
+.playground {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.note {
+  font-size: 0.875rem;
+  color: var(--color-fg-muted);
+}
+
+/* Sandpack本体は自前のテーマを持つので、外側の角丸と影だけ合わせる */
+.editor {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
