@@ -91,11 +91,59 @@ const REACT_SETUP_WITH_PREVIEW = {
 // @codesandbox/sandpack-react は SandpackTests の onComplete が受け取る
 // 型(Spec)を公開exportしていないため、構造的に必要な部分だけをここで定義する。
 type TestLikeStatus = "idle" | "running" | "pass" | "fail";
+
+// Jestは expect() の失敗にだけ matcherResult を付ける。これが
+// 「答えが分かってしまう不正解」と「実行前に落ちた技術的なエラー」を分ける目印になる。
+type TestErrorLike = {
+  name?: string;
+  message?: string;
+  matcherResult?: unknown;
+};
+
+type TestLike = {
+  status: TestLikeStatus;
+  errors?: TestErrorLike[];
+};
+
 type TestSpecLike = {
-  error?: unknown;
-  tests: Record<string, { status: TestLikeStatus }>;
+  error?: TestErrorLike;
+  tests: Record<string, TestLike>;
   describes: Record<string, TestSpecLike>;
 };
+
+// 「期待値と実際の値が違う」というロジック上の不正解(matcherResultあり)は、
+// メッセージに期待値がそのまま含まれるため生徒に見せない。
+// 一方 export の付け忘れや実行時例外のような技術的なエラー(matcherResultなし)は、
+// 見せたほうが自力で直せるので、そのまま表示する。
+function collectTechnicalErrors(spec: TestSpecLike): string[] {
+  const messages: string[] = [];
+
+  const pushIfTechnical = (error: TestErrorLike | undefined) => {
+    if (!error || error.matcherResult) return;
+    const message = error.message?.trim();
+    if (!message) return;
+    messages.push(error.name && error.name !== "Error" ? `${error.name}: ${message}` : message);
+  };
+
+  // スペック単位のエラー(テストファイル自体が読み込めなかった場合など)
+  pushIfTechnical(spec.error);
+
+  for (const test of Object.values(spec.tests ?? {})) {
+    for (const error of test.errors ?? []) pushIfTechnical(error);
+  }
+
+  for (const child of Object.values(spec.describes ?? {})) {
+    messages.push(...collectTechnicalErrors(child));
+  }
+
+  return messages;
+}
+
+function collectAllTechnicalErrors(specs: Record<string, TestSpecLike>): string[] {
+  const all = Object.values(specs).flatMap(collectTechnicalErrors);
+  // 同じエラーが複数のテストから何度も出るので重複を潰す
+  return [...new Set(all)];
+}
 
 function collectTestCounts(spec: TestSpecLike): { pass: number; fail: number } {
   let pass = 0;
@@ -140,7 +188,7 @@ type GradingStatus = "idle" | "running" | "failed" | "submitting" | "cleared" | 
 type GradingRunnerProps = {
   status: GradingStatus;
   onSubmit: (solutionCode: string) => void;
-  onFail: () => void;
+  onFail: (technicalErrors: string[]) => void;
   onRunRequest: () => void;
 };
 
@@ -190,11 +238,11 @@ function GradingRunner({ status, onSubmit, onFail, onRunRequest }: GradingRunner
   // a different component」を避けるため)。
   const handleComplete = (specs: Record<string, TestSpecLike>) => {
     if (!isAllTestsPassed(specs)) {
-      // 実装前(空)・実装途中いずれの失敗も、演習の答えが透けて見える生の
-      // Jest出力(テストコードの中身やスタックトレース)は見せず、汎用メッセージに
-      // とどめる。型チェック済みで一度PASSした後の型エラーとは区別する。
+      // ロジック上の不正解は、期待値が見えてしまうため汎用メッセージにとどめる。
+      // exportの付け忘れや実行時例外のような技術的なエラーだけは具体的に見せる。
+      const technicalErrors = collectAllTechnicalErrors(specs);
       setTimeout(() => {
-        onFail();
+        onFail(technicalErrors);
       }, 0);
       return;
     }
@@ -254,6 +302,8 @@ export function SandpackGrader({
 }: SandpackGraderProps) {
   const [status, setStatus] = useState<GradingStatus>("idle");
   const [typeErrors, setTypeErrors] = useState<string[]>([]);
+  // テスト実行中に出た技術的なエラー(exportの付け忘れ・実行時例外など)
+  const [runtimeErrors, setRuntimeErrors] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
 
   // filesをレンダーのたびに新しいオブジェクトとして生成すると、SandpackProviderが
@@ -289,14 +339,16 @@ export function SandpackGrader({
 
   const showPreview = isReact && previewCode !== null;
 
-  const handleFail = () => {
+  const handleFail = (errors: string[]) => {
     setTypeErrors([]);
+    setRuntimeErrors(errors);
     setStatus("failed");
   };
 
   // 「採点する」が押されたら、前回の結果を消して実行中の状態にする。
   const handleRunRequest = () => {
     setTypeErrors([]);
+    setRuntimeErrors([]);
     setStatus("running");
   };
 
@@ -364,18 +416,32 @@ export function SandpackGrader({
         </SandpackProvider>
       </div>
 
-      {status === "failed" && (
-        <div role="status" className={`${styles.message} ${styles.messageInfo}`}>
-          <p>まだテストが通っていません。実装を見直してみましょう。</p>
-          {/* 白紙式の雛形ではexportの付け忘れが起きやすく、しかも「自分の
-              console.logは正しく出ているのに判定だけ通らない」という
-              分かりにくい詰まり方をするため、ヒントとして常に添えておく。 */}
+      {/* 技術的なエラー(exportの付け忘れ・実行時例外など)は、そもそもコードが
+          動いていないので具体的に見せる。答えが漏れる心配もない。 */}
+      {status === "failed" && runtimeErrors.length > 0 && (
+        <div role="alert" className={`${styles.message} ${styles.messageError}`}>
+          <p>コードの実行中にエラーが起きました。</p>
+          <ul className={styles.errorList}>
+            {runtimeErrors.map((error) => (
+              <li key={error}>{error}</li>
+            ))}
+          </ul>
           <p className={styles.hint}>
             ヒント: 関数や型に <code>export</code> を付け忘れていませんか?
             テストは <code>import</code> で読み込むため、<code>export</code> がないと
             見つけられません。
           </p>
         </div>
+      )}
+
+      {/* 逆に、コードは動いたうえで「期待値と違った」だけの場合は、
+          エラーメッセージに期待値がそのまま含まれており答えが分かってしまうため、
+          汎用メッセージにとどめる。この場合はexportも構文も問題ないので
+          上のヒントも出さない。 */}
+      {status === "failed" && runtimeErrors.length === 0 && (
+        <p role="status" className={`${styles.message} ${styles.messageInfo}`}>
+          まだテストが通っていません。実装を見直してみましょう。
+        </p>
       )}
 
       {status === "type-error" && (
