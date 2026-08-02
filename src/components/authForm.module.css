@@ -1,0 +1,130 @@
+/*
+ * ログイン画面とオンボーディング画面で共通して使うスタイル。
+ * どちらも「中央に1枚のカードを置き、その中にフォームを縦に並べる」だけの
+ * 同じ構造なので、CSSは1つにまとめている。
+ * 色・余白・角丸・影は globals.css のデザイントークンを参照すること。
+ */
+
+/* 画面全体。カードを上下左右の中央に置く */
+.page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6) var(--space-4);
+}
+
+.card {
+  width: 100%;
+  max-width: 24rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-6);
+}
+
+.title {
+  font-size: 1.375rem;
+  text-align: center;
+}
+
+.lead {
+  margin-top: var(--space-2);
+  font-size: 0.875rem;
+  color: var(--color-fg-muted);
+  text-align: center;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-fg-muted);
+}
+
+.input {
+  font: inherit;
+  color: var(--color-fg);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  width: 100%;
+}
+
+.input:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
+  border-color: var(--color-accent);
+}
+
+/* 入力エラーなど、赤系で伝えたいメッセージ */
+.error {
+  font-size: 0.875rem;
+  color: var(--color-warning);
+  background: var(--color-warning-soft);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+}
+
+/* 「確認メールを送りました」など、成功・案内系のメッセージ */
+.info {
+  font-size: 0.875rem;
+  color: var(--color-success);
+  background: var(--color-success-soft);
+  border: 1px solid var(--color-success);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.button {
+  font: inherit;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+/* 主要な操作(ログイン / はじめる) */
+.buttonPrimary {
+  color: var(--color-accent-fg);
+  background: var(--color-accent);
+}
+
+.buttonPrimary:hover {
+  opacity: 0.9;
+}
+
+/* 副次的な操作(新規登録) */
+.buttonSecondary {
+  color: var(--color-fg);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+.buttonSecondary:hover {
+  background: var(--color-surface-2);
+}

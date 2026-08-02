@@ -1,4 +1,5 @@
 import { signIn, signUp } from "@/app/login/actions";
+import styles from "./authForm.module.css";
 
 type LoginFormProps = {
   errorMessage?: string;
@@ -7,16 +8,26 @@ type LoginFormProps = {
 
 export function LoginForm({ errorMessage, infoMessage }: LoginFormProps) {
   return (
-    <form>
-      <div>
-        <label htmlFor="email">メールアドレス</label>
-        <br />
-        <input id="email" name="email" type="email" autoComplete="email" required />
-      </div>
-      <div>
-        <label htmlFor="password">パスワード</label>
-        <br />
+    <form className={styles.form}>
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor="email">
+          メールアドレス
+        </label>
         <input
+          className={styles.input}
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+        />
+      </div>
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor="password">
+          パスワード
+        </label>
+        <input
+          className={styles.input}
           id="password"
           name="password"
           type="password"
@@ -26,14 +37,26 @@ export function LoginForm({ errorMessage, infoMessage }: LoginFormProps) {
         />
       </div>
 
-      {errorMessage && <p role="alert">{errorMessage}</p>}
-      {infoMessage && <p>{infoMessage}</p>}
+      {errorMessage && (
+        <p className={styles.error} role="alert">
+          {errorMessage}
+        </p>
+      )}
+      {infoMessage && <p className={styles.info}>{infoMessage}</p>}
 
-      <div>
-        <button type="submit" formAction={signIn}>
+      <div className={styles.actions}>
+        <button
+          className={`${styles.button} ${styles.buttonPrimary}`}
+          type="submit"
+          formAction={signIn}
+        >
           ログイン
         </button>
-        <button type="submit" formAction={signUp}>
+        <button
+          className={`${styles.button} ${styles.buttonSecondary}`}
+          type="submit"
+          formAction={signUp}
+        >
           新規登録
         </button>
       </div>
