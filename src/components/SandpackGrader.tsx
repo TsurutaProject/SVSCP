@@ -5,6 +5,7 @@ import {
   SandpackProvider,
   SandpackLayout,
   SandpackCodeEditor,
+  SandpackConsole,
   SandpackPreview,
   SandpackTests,
   useActiveCode,
@@ -59,6 +60,25 @@ const REACT_SETUP = {
     "react-dom": "^18.2.0",
   },
 };
+
+// SandpackConsoleについて:
+// ここでは standalone を「付けない」のが正しい。SandpackConsoleは
+// standalone を付けると自前の実行用iframeを作り、そのクライアントのログだけを
+// 見るようになる。ここで見たいのは「テスト実行中に生徒のコードが出したログ」
+// (生徒はデバッグのためformatPriceなどの関数の中にconsole.logを書く。それが
+// 実際に呼ばれるのはテスト実行時)なので、自前のiframeを持ってしまうと
+// テスト側のログが一切拾えない。
+// standaloneを付けない場合、clientIdがundefinedになり、Sandpackの
+// グローバルリスナーとして「全クライアント」のログを受け取れる(採点用の
+// 隠しテストのクライアントや、Reactのプレビューのクライアントを含む)。
+//
+// 逆に、練習用エディタ(SandpackPlayground)のTS版はテストもプレビューも無く、
+// コードを実行するクライアントが1つも存在しないため、あちらではstandaloneが必須。
+// 「常にstandaloneを付ける/付けない」ではなく、コードを走らせるクライアントが
+// 他にあるかどうかで決まる。
+//
+// なお隠しテストに渡している hideTestsAndSupressLogs は、テストパネル内の
+// 表示を抑えるだけで、クライアントからのconsoleメッセージ送出は止めない。
 
 // プレビューを出す場合は、バンドラーのエントリをプレビュー用ファイルに向ける。
 // (テストの検出はファイル名の正規表現で行われるため、entryを変えても影響しない)
@@ -282,9 +302,21 @@ export function SandpackGrader({
         >
           <SandpackLayout>
             <SandpackCodeEditor showLineNumbers />
-            {showPreview && <SandpackPreview />}
+            {showPreview ? <SandpackPreview /> : <SandpackConsole />}
             <GradingRunner status={status} onSubmit={handleSubmit} onFail={handleFail} />
           </SandpackLayout>
+
+          {/* プレビューがある場合(Reactの演習)は、エディタ・プレビューと3列に
+              並べると窮屈になるため、コンソールだけ下の段に置く。
+              未実装のうちはReactの警告が大量に出るため、高さを固定して
+              下の判定メッセージが画面外に押し出されないようにしている。 */}
+          {showPreview && (
+            <div className={styles.consoleRow}>
+              <SandpackLayout>
+                <SandpackConsole resetOnPreviewRestart />
+              </SandpackLayout>
+            </div>
+          )}
         </SandpackProvider>
       </div>
 
