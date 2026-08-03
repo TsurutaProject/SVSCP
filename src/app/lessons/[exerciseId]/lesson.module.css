@@ -187,6 +187,12 @@
   border-bottom: 0;
 }
 
+/* 本文中に埋め込む「一緒にやってみる」エディタ。
+   .prose の子要素なので、上下の間隔だけ本文より少し広めに取る。 */
+.tryIt {
+  margin-top: var(--space-5);
+}
+
 /* 本文を読み終えた位置に置く、採点ページへの導線 */
 .cta {
   margin-top: var(--space-6);

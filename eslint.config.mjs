@@ -21,6 +21,8 @@ const eslintConfig = defineConfig([
     "content/**/*.typecheck.ts",
     "content/**/*.typecheck.tsx",
     "content/**/*.preview.tsx",
+    "content/**/*.tryit.ts",
+    "content/**/*.tryit.tsx",
   ]),
 ]);
 

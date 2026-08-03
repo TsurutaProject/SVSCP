@@ -7,6 +7,8 @@ import { getTeamMemberByUserId } from "@/lib/supabase/queries/teamMembers";
 import { loadLesson, findNeighbours } from "@/lib/curriculum/lessons";
 import { isGraded } from "@/lib/curriculum/grading";
 import { hasPlayground } from "@/lib/curriculum/playgrounds";
+import { loadTryItFiles } from "@/lib/curriculum/tryIt";
+import { SandpackPlayground } from "@/components/SandpackPlayground";
 import styles from "./lesson.module.css";
 
 type LessonPageProps = {
@@ -14,7 +16,7 @@ type LessonPageProps = {
 };
 
 // MDX内の表は横に長くなりがちなので、はみ出す時だけスクロールできるように包む。
-const mdxComponents = {
+const baseMdxComponents = {
   table: (props: React.ComponentProps<"table">) => (
     <div className={styles.tableWrapper}>
       <table {...props} />
@@ -43,6 +45,20 @@ export default async function LessonPage({ params }: LessonPageProps) {
   if (!lesson) {
     notFound();
   }
+
+  // 教材本文に <TryIt /> と書くと、その場で書いて動かせるエディタが差し込まれる。
+  // 中身は {exercise_id}.tryit.{ts,tsx,html} から読む(用意がなければ何も描画しない)。
+  // 読み込みはサーバー側で済ませ、MDXからはpropsなしで置けるようにしている。
+  const tryIt = loadTryItFiles(exerciseId);
+  const mdxComponents = {
+    ...baseMdxComponents,
+    TryIt: () =>
+      tryIt ? (
+        <div className={styles.tryIt}>
+          <SandpackPlayground kind={tryIt.kind} starter={tryIt.starter} />
+        </div>
+      ) : null,
+  };
 
   const { content } = await compileMDX({
     source: lesson.source,
