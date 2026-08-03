@@ -103,6 +103,53 @@ tasks = [
 
 Rubyの配列・ハッシュの組み合わせで、見た目上は近いものが作れる。ただしRubyには「この配列の中身は必ずこの形のハッシュだけ」という強制力がない。TypeScriptの`Task[]`は、「配列の中に、うっかり違う形のオブジェクトを紛れ込ませてしまう」というバグを防いでくれる点が、Rubyとの体験の大きな違い。
 
+## 一緒にやってみる
+
+演習に入る前に、型を組み合わせる書き方を確かめよう。
+プロトタイプの`CakeDefinition`のように、**配列を持つ型**と、**その型を持つ型**を書いてみる:
+
+```ts
+interface Cake {
+  name: string;
+  palette: string[];
+}
+
+interface Showcase {
+  shopName: string;
+  cakes: Cake[];
+}
+
+const showcase: Showcase = {
+  shopName: "のりまき洋菓子店",
+  cakes: [
+    { name: "ショートケーキ", palette: ["#fff", "#ffd8e4"] },
+    { name: "チョコケーキ", palette: ["#3e2723"] },
+  ],
+};
+```
+
+このコードを、**コピペせずに自分の手で入力してみてほしい**。書けたら、
+中身を取り出せることを確かめてみよう:
+
+```ts
+console.log(showcase.cakes[0].palette);
+```
+
+<TryIt />
+
+書き方の型を整理すると:
+
+```
+型名[]            // その型の配列
+プロパティ: 別の型[]  // 別の型の配列を持つ
+```
+
+- `string[]`は「文字列の配列」、`Cake[]`は「Cake型の配列」
+- 自分で定義した型も、他の型の中でそのまま使える
+- 深くなったら「内側から順に」定義していくと迷いにくい
+
+演習では、この形で`Player`と`Team`を定義することになる。
+
 ## 演習
 
 `Player`というinterfaceを定義してください(`name`: 文字列、`items`: 文字列の配列)。その後、`Team`というinterfaceを定義してください(`teamName`: 文字列、`members`: `Player`型の配列)。最後に、2人のPlayerを含む`Team`オブジェクトを1つ作成してください。

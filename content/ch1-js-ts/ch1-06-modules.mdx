@@ -66,6 +66,38 @@ require_relative 'utils'
 
 Rubyの`require`/`require_relative`も似た役割だけど、JSの`import { add } from './utils'`のように「取り込む名前を明示的に指定する」感覚は薄い(`require`すると、そのファイルの中身が丸ごとグローバルに読み込まれるイメージに近い)。JSの方が「何を取り込んでるか」がコード上で明示的、と捉えると分かりやすいかも。
 
+## 一緒にやってみる
+
+演習に入る前に、`export`の付け方だけを手を動かして確かめておこう。
+プロトタイプの`utils/`にある関数は、どれもこの形で外に公開されている:
+
+```ts
+export const calculateDistance = (from: number, to: number): number => Math.abs(to - from);
+```
+
+このコードを、**コピペせずに自分の手で入力してみてほしい**。書けたら、
+同じファイルの中から呼び出して、動くことを確かめてみよう:
+
+```ts
+console.log(calculateDistance(3, 10)); // 7
+```
+
+<TryIt />
+
+書き方の型を整理すると:
+
+```
+export const 関数名 = (引数) => 処理;   // 外のファイルから使えるようにする
+import { 関数名 } from "./ファイル名";   // 別のファイルから読み込む
+```
+
+- `export`を付けた名前だけが、他のファイルから見える
+- 読み込む側は`import { 名前 } from "./パス"`と書く。**名前は`export`した名前と一致させる**
+- `export`を付け忘れると、`import`しても`undefined`になり「関数じゃない」というエラーになる
+
+このエディタは1ファイルなので`import`は試せないが、演習では2ファイルに分けて書くことになる。
+`export`の付け忘れがいちばんよくある詰まりどころなので、ここで形を覚えておこう。
+
 ## 演習
 
 `fareUtils.js`というファイルに`calculateFare(distance)`という関数(距離に応じて運賃を計算する、中身は自由でOK)を`export`で定義し、別の`main.js`というファイルからその関数を`import`して呼び出すコードを書いてください(2ファイル分書く形)。

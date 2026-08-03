@@ -82,6 +82,47 @@ prices.put(Fruit.APPLE, 100);
 
 Rubyのハッシュは動的なので、`Record`のような「キーが全部揃ってることの保証」という概念自体がない。これもTypeScript(というより静的型付け言語全般)特有の恩恵として捉えるのがいい。
 
+## 一緒にやってみる
+
+演習に入る前に、`Record`の書き方を確かめよう。
+プロトタイプの`TrophyProgress`と同じ形で、トッピングごとの在庫を持つ型を書いてみる:
+
+```ts
+type ToppingKind = "strawberry" | "banana" | "cream";
+
+const stock: Record<ToppingKind, number> = {
+  strawberry: 12,
+  banana: 5,
+  cream: 8,
+};
+```
+
+このコードを、**コピペせずに自分の手で入力してみてほしい**。書けたら、
+1つ書き忘れるとどうなるか、`Partial`で包むと何が変わるかも試してみよう
+(下の`restocking`は「補充予定があるトッピングだけ」を表す想定):
+
+```ts
+console.log(stock.banana);
+
+const restocking: Partial<Record<ToppingKind, number>> = { strawberry: 20 };
+console.log(restocking);
+```
+
+<TryIt />
+
+書き方の型を整理すると:
+
+```
+Record<キーの型, 値の型>            // キー全部について値を持つ
+Partial<Record<キーの型, 値の型>>   // 一部だけでもよい
+```
+
+- `Record`は「そのunion typeの値**すべて**をキーとして持つ」ことを保証する
+  (1つでも書き忘れるとエラーになるので、記録漏れを防げる)
+- `Partial<...>`で包むと、「全部揃っていなくてもよい」という意味に変わる
+
+演習では、この`Record`と`Partial<Record<...>>`を両方使うことになる。
+
 ## 演習
 
 `CakeKind`(`'shortcake' | 'chocolate'`)という型があるとして、`Record`を使って、それぞれのケーキの在庫数(`number`)を持つ`stock`というオブジェクトを定義してください。その後、`Partial<Record<...>>`を使って、「一部のケーキだけ割引率(`number`)が設定されている」`discounts`というオブジェクトも定義してください。
