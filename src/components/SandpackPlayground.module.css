@@ -15,3 +15,36 @@
   overflow: hidden;
   box-shadow: var(--shadow-sm);
 }
+
+/* 「実行する」ボタンの帯。エディタカードの下端に付ける。
+   採点ページ(SandpackGrader)の「採点する」と見た目・操作感を揃えている。 */
+.runBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+.runButton {
+  font: inherit;
+  font-weight: 700;
+  color: var(--color-accent-fg);
+  background: var(--color-accent);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-5);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.runButton:hover {
+  opacity: 0.9;
+}
+
+.runHint {
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+}
