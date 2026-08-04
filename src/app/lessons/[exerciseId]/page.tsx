@@ -3,12 +3,13 @@ import { notFound, redirect } from "next/navigation";
 import { compileMDX } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUserId } from "@/lib/supabase/currentUser";
 import { getTeamMemberByUserId } from "@/lib/supabase/queries/teamMembers";
 import { loadLesson, findNeighbours } from "@/lib/curriculum/lessons";
 import { isGraded } from "@/lib/curriculum/grading";
 import { hasPlayground } from "@/lib/curriculum/playgrounds";
 import { loadTryItFiles } from "@/lib/curriculum/tryIt";
-import { SandpackPlayground } from "@/components/SandpackPlayground";
+import { TryItEmbed } from "@/components/TryItEmbed";
 import styles from "./lesson.module.css";
 
 type LessonPageProps = {
@@ -27,16 +28,15 @@ const baseMdxComponents = {
 export default async function LessonPage({ params }: LessonPageProps) {
   const { exerciseId } = await params;
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  // 認証はproxy側で済んでいるので、ここでは検証済みのIDを受け取るだけにする
+  // (getUser()を呼ぶとSupabaseへの往復がもう1回増える)
+  const userId = await getAuthenticatedUserId();
+  if (!userId) {
     redirect("/login");
   }
 
-  const teamMember = await getTeamMemberByUserId(supabase, user.id);
+  const supabase = await createClient();
+  const teamMember = await getTeamMemberByUserId(supabase, userId);
   if (!teamMember) {
     redirect("/onboarding");
   }
@@ -55,7 +55,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
     TryIt: () =>
       tryIt ? (
         <div className={styles.tryIt}>
-          <SandpackPlayground kind={tryIt.kind} starter={tryIt.starter} />
+          <TryItEmbed kind={tryIt.kind} starter={tryIt.starter} />
         </div>
       ) : null,
   };

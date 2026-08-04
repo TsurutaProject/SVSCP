@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUserId } from "@/lib/supabase/currentUser";
 import { getTeamMemberByUserId } from "@/lib/supabase/queries/teamMembers";
 import { findExerciseById } from "@/lib/curriculum/chapters";
 import { isGraded, loadGradingFiles } from "@/lib/curriculum/grading";
@@ -16,16 +17,15 @@ type ExercisePageProps = {
 export default async function ExercisePage({ params }: ExercisePageProps) {
   const { exerciseId } = await params;
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  // 認証はproxy側で済んでいるので、ここでは検証済みのIDを受け取るだけにする
+  // (getUser()を呼ぶとSupabaseへの往復がもう1回増える)
+  const userId = await getAuthenticatedUserId();
+  if (!userId) {
     redirect("/login");
   }
 
-  const teamMember = await getTeamMemberByUserId(supabase, user.id);
+  const supabase = await createClient();
+  const teamMember = await getTeamMemberByUserId(supabase, userId);
   if (!teamMember) {
     redirect("/onboarding");
   }
