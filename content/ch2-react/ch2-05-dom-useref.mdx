@@ -90,6 +90,41 @@ export default class extends Controller {
 
 `data-greeting-target="input"`でDOM要素に印をつけておき、`this.inputTarget`でその要素に直接アクセスする。「必要な時だけDOMに直接手を伸ばす」という発想は、`useRef`とほぼ同じ。Stimulusを触ったことがあるなら、この概念自体は驚くほどすんなり入ってくるはず。
 
+## 一緒にやってみる
+
+演習に入る前に、`useRef`でDOM要素をつかむ流れを確かめよう。
+プロトタイプの`useRef<HTMLElement | null>(null)`と同じ形:
+
+```tsx
+const boxRef = useRef<HTMLDivElement | null>(null);
+```
+
+このコードを、**コピペせずに自分の手で入力してみてほしい**。書けたら、
+`ref`で要素と結びつけ、ボタンから操作できることを確かめてみよう:
+
+```tsx
+<div ref={boxRef}>ここが対象</div>
+<button onClick={() => { if (boxRef.current) boxRef.current.textContent = "変わった"; }}>
+  書き換える
+</button>
+```
+
+<TryIt />
+
+書き方の型を整理すると:
+
+```
+const 名前Ref = useRef<要素の型 | null>(null);
+<タグ ref={名前Ref} />
+名前Ref.current?.操作();
+```
+
+- `useRef`は「描き直しても中身が消えない箱」。`ref={...}`で要素と結びつける
+- 実際の要素は`.current`に入る。**最初は`null`**なので`?.`や`if`で確認してから使う
+- `useState`と違い、`.current`を変えても画面は描き直されない
+
+演習では、この形で入力欄をつかんで`focus()`を呼ぶことになる。
+
 ## 演習
 
 `useRef`を使って、ボタンを押すとテキスト入力欄に自動でフォーカスが当たる、シンプルなコンポーネントを作成してください(`inputRef.current?.focus()`を使うこと)。

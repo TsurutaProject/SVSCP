@@ -44,6 +44,35 @@ Javaでの依存関係管理は、`pom.xml`(Maven)や`build.gradle`(Gradle)が�
 
 RailsでいうところのGemfile(依存パッケージの一覧)とほぼ同じ役割。`bundle exec rails server`のように、Railsにも「決まったコマンドを実行する」という文化はあるけど、npm scriptsのように任意の短縮名を自由に定義できるという柔軟さは、`package.json`の方が高い(RailsのGemfileには「短縮コマンドを定義する」機能自体はない)。
 
+## 一緒にやってみる
+
+この演習は`package.json`というファイルそのものを触るので、エディタの中で
+`npm run`を動かすことはできない。ただ、`scripts`が**ただのオブジェクト**だという
+感覚はつかんでおける。キーを1つ足してみよう:
+
+```ts
+packageJson.scripts.format = "prettier --write .";
+```
+
+このコードを、**コピペせずに自分の手で入力してみてほしい**。書けたら、
+`Object.keys(...)`でコマンド名の一覧が増えることを確かめてみよう。
+
+<TryIt />
+
+読み方の型を整理すると:
+
+```
+"scripts": {
+  "コマンド名": "実際に実行される中身"
+}
+```
+
+- `npm run コマンド名`と打つと、右側の文字列がそのまま実行される
+- つまり「よく使う長いコマンドに、短い名前を付けておく場所」
+- 名前は自由に決めてよい(`dev`・`build`・`lint`などは慣習的によく使われる)
+
+演習では、この形で`typecheck`を実際の`package.json`に追加することになる。
+
 ## 演習
 
 `package.json`の`scripts`に、`"typecheck": "tsc --noEmit"`という新しいコマンドを追加してください。追加後、`npm run typecheck`で型チェックだけを実行できることを確認してください。

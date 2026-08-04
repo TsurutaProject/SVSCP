@@ -51,6 +51,38 @@ Cake-Gameの`styles/game.css`から:
 
 `@media (max-width: 960px)`は、「画面の幅が960px以下の場合だけ、この中のスタイルを適用する」という条件分岐(2章で学んだJSXの`&&`条件レンダリングの、CSS版のようなもの、と考えると理解しやすいかもしれない)。画面が狭くなったら、`flex-direction: column`で横並びから縦並びに切り替える、という、スマホ対応でよく使われるテクニック。
 
+## 一緒にやってみる
+
+演習に入る前に、Flexboxの並べ方を手を動かして確かめよう。
+プロトタイプの`.game-header`から、代表的な指定だけ抜き出した形:
+
+```css
+.game-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+```
+
+このコードを、**コピペせずに自分の手で入力してみてほしい**。書けたら、
+`justify-content`を`center`や`flex-start`に変えて、並び方の違いを見てみよう。
+
+<TryIt />
+
+書き方の型を整理すると:
+
+```
+display: flex;             /* 子を横一列に並べる */
+justify-content: 並べ方;    /* 横方向のそろえ方 */
+align-items: そろえ方;      /* 縦方向のそろえ方 */
+```
+
+- `justify-content: space-between`は「両端に寄せて、間を均等に空ける」
+- `align-items`は縦方向。`center`で中央、`flex-end`で下そろえ
+- 横並びを縦並びに変えたいときは`flex-direction: column`
+
+演習では、これに`@media`(画面幅による切り替え)を組み合わせる。
+
 ## 演習
 
 `.toolbar`というクラスに`display: flex`を指定し、子要素が左右の両端に配置される(`justify-content`)ようにしてください。さらに、画面幅が`600px`以下になったら`flex-direction: column`に切り替わる(`@media`)ようにしてください。

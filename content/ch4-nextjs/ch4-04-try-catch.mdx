@@ -102,6 +102,42 @@ end
 
 Rubyの`begin`/`rescue`が`try`/`catch`に相当する。発想は同じだけど、キーワードが違う(`begin`/`rescue`/`ensure` vs `try`/`catch`/`finally`)。
 
+## 一緒にやってみる
+
+演習に入る前に、`try`/`catch`で落ちないようにする形を確かめよう。
+プロトタイプの`localStorage`の例と同じく、**失敗しうる処理を囲む**形:
+
+```ts
+const readNumber = (text: string): number => {
+  try {
+    return JSON.parse(text).value;
+  } catch {
+    return 0;
+  }
+};
+```
+
+このコードを、**コピペせずに自分の手で入力してみてほしい**。書けたら、
+正しいJSONと壊れたJSONの両方を渡して、落ちずに動くことを確かめてみよう。
+
+<TryIt />
+
+書き方の型を整理すると:
+
+```
+try {
+  失敗するかもしれない処理
+} catch {
+  失敗したときの代わりの処理
+}
+```
+
+- `try`の中で例外が起きると、**そこで中断して`catch`へ飛ぶ**
+- `catch`で値を返しておけば、呼び出し側は何事もなく続けられる
+- エラーの中身を見たいときは`catch (error)`と受け取る
+
+演習では、この形で`safeJsonParse`を書くことになる。
+
 ## 演習
 
 `safeJsonParse(text: string)`という関数を作成してください。`JSON.parse(text)`を`try`/`catch`で囲み、パースに成功すれば結果を返し、失敗すれば`null`を返すようにしてください。

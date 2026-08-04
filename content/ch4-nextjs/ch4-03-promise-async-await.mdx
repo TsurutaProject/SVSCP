@@ -72,6 +72,41 @@ Javaにも`CompletableFuture`という、非同期処理を表す仕組みがあ
 
 Railsの標準的なコントローラーのアクションは、基本的に同期処理として書かれる(`user = User.find(params[:id])`のように、`await`のようなキーワードなしでそのまま値が返ってくる)。これはRailsが「1リクエストにつき1スレッドが専有して処理する」という前提のフレームワークだから。JS(Node.js)は逆に、1つのスレッドで大量のリクエストを効率的にさばくために、非同期処理が前提の設計になっている。この違いは、これまで慣れてきたRailsの感覚と一番ギャップを感じる部分かもしれない。
 
+## 一緒にやってみる
+
+演習に入る前に、`await`の効き方を目で見て確かめよう。
+「1秒待ってから値を返す」関数を用意して、`await`ありとなしを比べてみる:
+
+```ts
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const main = async () => {
+  console.log("開始");
+  await wait(1000);
+  console.log("1秒後");
+};
+```
+
+このコードを、**コピペせずに自分の手で入力してみてほしい**。書けたら`main();`で
+呼び出し、`await`を消すと表示の順番が変わることも確かめてみよう。
+
+<TryIt />
+
+書き方の型を整理すると:
+
+```
+const 関数名 = async (引数) => {
+  const 結果 = await 時間のかかる処理();
+  return 結果;
+};
+```
+
+- `await`は`async`を付けた関数の中でしか使えない
+- `await`を書くと「終わるまで待ってから次の行へ進む」
+- `await`を書き忘れると、待たずに次へ進み、`Promise`そのものが返ってきてしまう
+
+演習では、この形で`getUserProfile`を書くことになる。
+
 ## 演習
 
 `getUserProfile(userId: string)`という`async`関数を作成してください。中で`fetchUser(userId)`(仮の関数、実装は`await new Promise((resolve) => setTimeout(() => resolve({ id: userId, name: "のりまき" }), 1000))`のようなダミーでOK)を`await`し、取得したユーザー情報の`name`だけを返すようにしてください。

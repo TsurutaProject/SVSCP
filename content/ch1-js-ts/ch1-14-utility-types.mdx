@@ -90,7 +90,7 @@ Rubyのハッシュは動的なので、`Record`のような「キーが全部�
 ```ts
 type ToppingKind = "strawberry" | "banana" | "cream";
 
-const stock: Record<ToppingKind, number> = {
+const shelfCount: Record<ToppingKind, number> = {
   strawberry: 12,
   banana: 5,
   cream: 8,
@@ -102,7 +102,7 @@ const stock: Record<ToppingKind, number> = {
 (下の`restocking`は「補充予定があるトッピングだけ」を表す想定):
 
 ```ts
-console.log(stock.banana);
+console.log(shelfCount.banana);
 
 const restocking: Partial<Record<ToppingKind, number>> = { strawberry: 20 };
 console.log(restocking);

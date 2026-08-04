@@ -88,6 +88,38 @@ handleClick(event) {
 
 Stimulusの`event`も、DOMのイベントオブジェクトをそのまま受け取ってる。ただしStimulus(JS)は動的型付けだから、`event.target`が本当に期待通りの要素か、コードを書いてる最中には保証されない。Reactの`MouseEvent<HTMLButtonElement>`のように「対象の要素の種類を型で固定する」という感覚は、Railsの標準的な開発フロー(ビュー側はERBでほぼ型を意識しない)にはあまりない、TypeScript特有の恩恵と言える。
 
+## 一緒にやってみる
+
+演習に入る前に、イベントの型を付ける形を確かめよう。
+プロトタイプの`import { ..., type PointerEvent } from 'react'`と同じく、
+**型だけをimportして引数に付ける**形:
+
+```tsx
+import type { MouseEvent } from "react";
+
+const handleClick = (event: MouseEvent<HTMLButtonElement>): void => {
+  console.log(event.currentTarget.textContent);
+};
+```
+
+このコードを、**コピペせずに自分の手で入力してみてほしい**。書けたら、
+ボタンに渡して、押したときにラベルがコンソールに出ることを確かめてみよう。
+
+<TryIt />
+
+書き方の型を整理すると:
+
+```
+import type { イベント型 } from "react";
+const ハンドラ = (event: イベント型<要素の型>): void => { ... };
+```
+
+- Reactのイベント型は`<要素の型>`とセットで書く(`HTMLButtonElement`など)
+- 型を付けると、`event.`の後に何が使えるかをエディタが教えてくれる
+- `import type`と書くと「型だけ」の取り込みになり、実行時には消える
+
+演習では、この形で`ChangeEvent<HTMLInputElement>`を使うことになる。
+
 ## 演習
 
 `handleInputChange`という関数を作成してください。`ChangeEvent<HTMLInputElement>`型のイベントを受け取り、`event.target.value`(入力された文字列)を`console.log`で出力するようにしてください。`import type { ChangeEvent } from "react"`を使うこと。

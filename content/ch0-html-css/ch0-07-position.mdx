@@ -62,6 +62,41 @@ Cake-Gameの`styles/game.css`から、`position: relative`+`position: absolute`�
 
 別の場所には`z-index: 50`という、さらに大きい値の要素もあった。複数のオーバーレイが同時に存在しうる場合、「どちらがより手前にあるべきか」を数値の大小で管理してる、という設計が読み取れる。
 
+## 一緒にやってみる
+
+演習に入る前に、要素を重ねる仕組みを確かめよう。
+プロトタイプの`.score-board div`と`.combo-candles`と同じ、**親子ペア**の形:
+
+```css
+.board {
+  position: relative;
+}
+
+.candles {
+  position: absolute;
+  right: 9px;
+  bottom: 9px;
+}
+```
+
+このコードを、**コピペせずに自分の手で入力してみてほしい**。書けたら、
+親の`position: relative`を消してみて、子がどこへ飛んでいくかを見てみよう。
+
+<TryIt />
+
+書き方の型を整理すると:
+
+```
+.親 { position: relative; }              /* 基準になる */
+.子 { position: absolute; 位置の指定; }   /* 親を基準に浮かせる */
+```
+
+- `absolute`は「**いちばん近い、`static`以外の親**」を基準に配置される
+- 親に`relative`を付け忘れると、基準が画面全体などに飛んでしまう
+- `top`/`right`/`bottom`/`left`で、基準からの距離を指定する
+
+演習では、この親子ペアで`.badge`をカードの右上に重ねることになる。
+
 ## 演習
 
 `.card`(親要素、`position: relative`)の右上に、`.badge`(子要素、`position: absolute`、`top: 8px; right: 8px;`)を重ねて表示するCSSを書いてください。

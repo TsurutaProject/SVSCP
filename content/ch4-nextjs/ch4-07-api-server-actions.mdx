@@ -104,6 +104,38 @@ API Routesは、Spring MVCの`@RestController`(URLを指定してJSONを返す)�
 
 API RoutesはRailsのControllerアクション(`respond_to :json`)に近い。Server Actionsは、Railsのフォーム送信+コントローラーのアクション処理を、1つの関数にまとめたようなものとイメージすると近いかもしれない。`formData.get("exerciseId")`は、Railsで言う`params[:exercise_id]`に近い役割。ただしRailsは「フォーム送信→別URLへのPOSTリクエスト→コントローラーで受け取る」という明確に分かれたステップを踏むのに対し、Server Actionsは「関数呼び出し」という形でその境界を隠してくれている、という違いがある。
 
+## 一緒にやってみる
+
+演習に入る前に、`async`関数が必ず`Promise`を返すことを確かめておこう。
+`"use server"`はNext.jsのサーバー側でしか意味を持たないので、ここでは
+**`async`関数の形**だけを練習する:
+
+```ts
+const incrementCount = async (current: number): Promise<number> => current + 1;
+```
+
+このコードを、**コピペせずに自分の手で入力してみてほしい**。書けたら、
+`await`を付けずに呼ぶとどう表示されるかも見てみよう:
+
+```ts
+incrementCount(3).then((next) => console.log("次の値:", next));
+console.log(incrementCount(3)); // Promise がそのまま出る
+```
+
+<TryIt />
+
+書き方の型を整理すると:
+
+```
+const 関数名 = async (引数: 型): Promise<戻り値の型> => 処理;
+```
+
+- `async`を付けた関数の戻り値は、**必ず`Promise`で包まれる**
+- だから型注釈も`Promise<number>`のように書く
+- 呼び出す側は`await`するか`.then()`で受け取る
+
+演習では、この形に`"use server"`を付けてServer Actionを書くことになる。
+
 ## 演習
 
 `"use server"`をつけた`incrementCounter(currentCount: number): Promise<number>`というServer Actionを作成してください(中身は`currentCount + 1`を返すだけでOK、実際のDB操作は不要)。`async`関数として定義すること。
