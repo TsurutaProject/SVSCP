@@ -1,0 +1,175 @@
+.section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  cursor: pointer;
+  user-select: none;
+}
+
+.summary:hover {
+  background: var(--color-surface-2);
+}
+
+.summaryLabel {
+  font-weight: 700;
+}
+
+.count {
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-2);
+}
+
+.summaryHint {
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-2) var(--space-5) var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+.empty {
+  color: var(--color-fg-muted);
+  font-size: 0.9375rem;
+  padding-top: var(--space-3);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  list-style: none;
+  padding-top: var(--space-3);
+}
+
+/* 他のメンバーの投稿(既定) */
+.note {
+  background: var(--color-surface-2);
+  border-left: 3px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+}
+
+/* 自分の投稿。軽い区別にとどめ、アクセント色の面と左ラインで示す */
+.note[data-mine="true"] {
+  background: var(--color-accent-soft);
+  border-left-color: var(--color-accent);
+}
+
+.noteHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.author {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.mineBadge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-2);
+}
+
+.postedAt {
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 自由テキストなので、書いたままの改行を保つ */
+.content {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-4);
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.textarea {
+  font: inherit;
+  color: var(--color-fg);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  resize: vertical;
+  width: 100%;
+}
+
+.textarea:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.formFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.formHint {
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+}
+
+.submitButton {
+  font: inherit;
+  font-weight: 700;
+  color: var(--color-accent-fg);
+  background: var(--color-accent);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-5);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.submitButton:hover {
+  opacity: 0.9;
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

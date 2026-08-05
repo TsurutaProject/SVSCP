@@ -8,6 +8,8 @@ import {
   upsertExerciseProgress,
   type ExerciseStatus,
 } from "@/lib/supabase/queries/exerciseProgress";
+import { createExerciseNote } from "@/lib/supabase/queries/exerciseNotes";
+import { MAX_NOTE_LENGTH } from "@/lib/notes";
 import { loadTypeCheckSource } from "@/lib/curriculum/grading";
 import { checkTypes } from "@/lib/curriculum/typeCheckRunner";
 
@@ -48,6 +50,43 @@ export async function updateExerciseStatus(formData: FormData) {
   });
 
   revalidatePath("/");
+}
+
+export async function postExerciseNote(formData: FormData) {
+  // 書き込みなので、ヘッダー経由のIDではなく getUser() で検証し直す
+  // (updateExerciseStatus / submitGradedExercise と同じ方針)。
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const teamMember = await getTeamMemberByUserId(supabase, user.id);
+  if (!teamMember) {
+    redirect("/onboarding");
+  }
+
+  const exerciseId = String(formData.get("exerciseId") ?? "");
+  const content = String(formData.get("content") ?? "").trim();
+
+  // 空投稿・長すぎる投稿は何もせずに戻す。textarea側にもmaxLengthを付けているが、
+  // Server Actionはフォーム経由以外からも呼べるため、サーバー側でも必ず弾く。
+  if (!exerciseId || !content || content.length > MAX_NOTE_LENGTH) {
+    return;
+  }
+
+  await createExerciseNote(supabase, {
+    teamId: teamMember.team_id,
+    exerciseId,
+    teamMemberId: teamMember.id,
+    content,
+  });
+
+  // 投稿したメモが一覧に出るよう、この演習ページを再生成させる
+  revalidatePath(`/exercises/${exerciseId}`);
 }
 
 export type SubmitGradedExerciseResult = { ok: true } | { ok: false; errors: string[] };

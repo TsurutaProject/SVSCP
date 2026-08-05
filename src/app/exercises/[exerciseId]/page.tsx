@@ -3,12 +3,26 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthenticatedUserId } from "@/lib/supabase/currentUser";
 import { getTeamMemberByUserId } from "@/lib/supabase/queries/teamMembers";
+import { getExerciseNotes } from "@/lib/supabase/queries/exerciseNotes";
 import { findExerciseById } from "@/lib/curriculum/chapters";
 import { isGraded, loadGradingFiles } from "@/lib/curriculum/grading";
 import { hasPlayground, loadPlaygroundFiles } from "@/lib/curriculum/playgrounds";
 import { SandpackGrader } from "@/components/SandpackGrader";
 import { SandpackPlayground } from "@/components/SandpackPlayground";
+import { ExerciseNotes, type ExerciseNoteView } from "@/components/ExerciseNotes";
+import { MAX_NOTE_LENGTH } from "@/lib/notes";
 import styles from "./exercise.module.css";
+
+// 投稿日時はサーバー側で日本時間に整形してから渡す。
+// クライアントで整形すると、サーバー(UTC)との差でハイドレーションエラーになる。
+const POSTED_AT_FORMATTER = new Intl.DateTimeFormat("ja-JP", {
+  timeZone: "Asia/Tokyo",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+});
 
 type ExercisePageProps = {
   params: Promise<{ exerciseId: string }>;
@@ -35,6 +49,16 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
     notFound();
   }
 
+  // RLSにより、自分が所属するチームのメモだけが返る
+  const notes = await getExerciseNotes(supabase, exerciseId);
+  const noteViews: ExerciseNoteView[] = notes.map((note) => ({
+    id: note.id,
+    authorName: note.authorName,
+    postedAt: POSTED_AT_FORMATTER.format(new Date(note.createdAt)),
+    content: note.content,
+    isMine: note.teamMemberId === teamMember.id,
+  }));
+
   return (
     <main className={styles.page}>
       <p className={styles.breadcrumb}>
@@ -55,6 +79,9 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
       ) : (
         <p className={styles.notice}>この演習の自動採点機能はまだ対応していません。</p>
       )}
+
+      {/* 採点結果の下に、チーム共有のメモ欄を置く */}
+      <ExerciseNotes exerciseId={exerciseId} notes={noteViews} maxLength={MAX_NOTE_LENGTH} />
     </main>
   );
 }
