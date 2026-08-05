@@ -39,3 +39,117 @@
   padding: var(--space-5);
   color: var(--color-fg-muted);
 }
+
+/* 教材から持ってきた「クリア条件」。コードエディタの前に置く。 */
+.clearConditions {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-4) var(--space-5);
+}
+
+.clearConditionsTitle {
+  font-size: 1rem;
+  margin-bottom: var(--space-2);
+}
+
+.clearConditionsBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.clearConditionsBody ul,
+.clearConditionsBody ol {
+  padding-left: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.clearConditionsBody code {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.9em;
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+  padding: 0.1em 0.35em;
+}
+
+/* Part A / Part B の区切り線が主張しすぎないようにする */
+.clearConditionsBody hr {
+  border: 0;
+  border-top: 1px solid var(--color-border);
+}
+
+/* 解答例の折りたたみ(自動採点のない演習だけに出る) */
+.answer {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.answerSummary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  cursor: pointer;
+  user-select: none;
+}
+
+.answerSummary:hover {
+  background: var(--color-surface-2);
+}
+
+.answerLabel {
+  font-weight: 700;
+}
+
+.answerHint {
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+}
+
+.answerBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+.answerBody ul,
+.answerBody ol {
+  padding-left: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* コードブロックは横に長くなるので、はみ出す分だけ横スクロールさせる */
+.answerBody pre {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  overflow-x: auto;
+}
+
+.answerBody pre code {
+  background: none;
+  padding: 0;
+}
+
+.answerBody code {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.9em;
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+  padding: 0.1em 0.35em;
+}

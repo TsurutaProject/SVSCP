@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { compileMDX } from "next-mdx-remote/rsc";
+import remarkGfm from "remark-gfm";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthenticatedUserId } from "@/lib/supabase/currentUser";
 import { getTeamMemberByUserId } from "@/lib/supabase/queries/teamMembers";
 import { getExerciseNotes } from "@/lib/supabase/queries/exerciseNotes";
 import { findExerciseById } from "@/lib/curriculum/chapters";
+import { loadLesson, extractClearConditions } from "@/lib/curriculum/lessons";
+import { loadAnswer } from "@/lib/curriculum/answers";
 import { isGraded, loadGradingFiles } from "@/lib/curriculum/grading";
 import { hasPlayground, loadPlaygroundFiles } from "@/lib/curriculum/playgrounds";
 import { SandpackGrader } from "@/components/SandpackGrader";
@@ -59,6 +63,20 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
     isMine: note.teamMemberId === teamMember.id,
   }));
 
+  // 教材の「クリア条件」を演習ページにも出す。
+  // 雛形コードのコメントだけでは、何を満たせばよいかが分かりにくいため。
+  const lesson = loadLesson(exerciseId);
+  const clearConditions = lesson ? extractClearConditions(lesson.source) : null;
+  const clearConditionsContent = clearConditions
+    ? (
+        await compileMDX({
+          source: clearConditions,
+          // 教材本文と同じくGFM(表など)を解釈できるようにしておく
+          options: { mdxOptions: { remarkPlugins: [remarkGfm] } },
+        })
+      ).content
+    : null;
+
   return (
     <main className={styles.page}>
       <p className={styles.breadcrumb}>
@@ -72,10 +90,25 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
       </p>
       <h1 className={styles.title}>{exercise.title}</h1>
 
+      {/* コードエディタの前に置く。「何を満たせばクリアか」を先に読んでから
+          手を動かせるようにするため。 */}
+      {clearConditionsContent && (
+        <section className={styles.clearConditions}>
+          <h2 className={styles.clearConditionsTitle}>クリア条件</h2>
+          <div className={styles.clearConditionsBody}>{clearConditionsContent}</div>
+        </section>
+      )}
+
       {isGraded(exerciseId) ? (
         <SandpackGraderSection exerciseId={exerciseId} />
       ) : hasPlayground(exerciseId) ? (
-        <PlaygroundSection exerciseId={exerciseId} />
+        <>
+          <PlaygroundSection exerciseId={exerciseId} />
+          {/* 自動採点がない演習は正誤を確かめる手段がないので、
+              自分で書いたあとに答え合わせできるよう解答例を置く。
+              採点対応の演習には置かない(テストで分かるうえ、採点の意味がなくなるため)。 */}
+          <AnswerSection exerciseId={exerciseId} />
+        </>
       ) : (
         <p className={styles.notice}>この演習の自動採点機能はまだ対応していません。</p>
       )}
@@ -83,6 +116,30 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
       {/* 採点結果の下に、チーム共有のメモ欄を置く */}
       <ExerciseNotes exerciseId={exerciseId} notes={noteViews} maxLength={MAX_NOTE_LENGTH} />
     </main>
+  );
+}
+
+// 解答例。<details>なので開くまでは目に入らず、先に自分で書く流れを崩さない。
+// 解答例(.answer.md)が用意されていない演習では何も描画しない。
+async function AnswerSection({ exerciseId }: { exerciseId: string }) {
+  const answer = loadAnswer(exerciseId);
+  if (!answer) return null;
+
+  const { content } = await compileMDX({
+    source: answer,
+    options: { mdxOptions: { remarkPlugins: [remarkGfm] } },
+  });
+
+  return (
+    <details className={styles.answer}>
+      <summary className={styles.answerSummary}>
+        <span className={styles.answerLabel}>解答例を見る</span>
+        <span className={styles.answerHint}>
+          まずは自分で書いてみてから開くのがおすすめです
+        </span>
+      </summary>
+      <div className={styles.answerBody}>{content}</div>
+    </details>
   );
 }
 

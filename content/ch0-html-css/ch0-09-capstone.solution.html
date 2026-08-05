@@ -1,9 +1,9 @@
 <!-- 総合演習:ケーキゲームのスコアボードを再現する
      教材の「要件」1〜5を、この1ファイルの中で順番に実装してみてください。
        1. :root にCSS変数を定義する(0-2)
-       2. .scoreboard を Flexbox で横並びにする(0-5)
+       2. .score-board を Flexbox で横並びにする(0-5)
        3. .score-card の余白・角丸・影を整える(0-3, 0-4)
-       4. .combo-badge をカードの右上に重ねる(0-7)
+       4. .combo-badge をカードの右下に重ねる(0-7)
        5. .combo-badge に @keyframes で弾む動きを付ける(0-8) -->
 <!DOCTYPE html>
 <html lang="ja">
@@ -20,7 +20,7 @@
     </style>
   </head>
   <body>
-    <div class="scoreboard">
+    <div class="score-board">
       <div class="score-card">
         <span class="combo-badge">3 COMBO</span>
         <p>スコア</p>
