@@ -37,54 +37,110 @@ export function loadLesson(exerciseId: string): Lesson | null {
   };
 }
 
-// 演習ページ(/exercises/{id})の先頭に出す「クリア条件」を、MDXから抜き出す。
+// 演習ページ(/exercises/{id})の先頭に出す「問題文 + クリア条件」を、MDXから抜き出す。
 //
-// 演習ページには雛形コードのコメントしか出ておらず、「何を満たせばよいか」を
-// 確かめるのに教材ページへ戻る必要があったため、ここだけを持ってきて表示する。
+// 演習ページには雛形コードのコメントしか出ておらず、何をすればよいかを確かめるのに
+// 教材ページへ戻る必要があったため、この2つだけを持ってきて表示する。
 //
-// 見出しの書き方が2通りある(教材によって "## クリア条件" と "### クリア条件")。
-// さらに総合演習には "### クリア条件(Part A)" のようにPart別のものもあるので、
-// 「クリア条件」で始まる見出しをすべて拾い、同じレベル以上の次の見出しまでを取る。
-export function extractClearConditions(source: string): string | null {
+// 教材によって構成が違うので、「クリア条件」の見出しを起点にして、
+// その手前にある問題文のセクションを遡って探す形にしている。実際にある構成は6通り:
+//   - "## 演習" → "### クリア条件"                         (43演習。大半はこれ)
+//   - "## 要件" → "### クリア条件"                         (ch3-06)
+//   - "## 要件" → "### 1..5" → "## クリア条件"             (ch0-09, ch4-08)
+//   - "## Part A:..." → "### クリア条件(Part A)"          (ch1-15, ch2-10。Part B も同様)
+//   - "## この演習について" → "### コード例1..3" → "## まとめ" → "### クリア条件"
+//                                                          (レビュー演習5件)
+
+/** 問題文の始まりとみなす見出し(この見出しから クリア条件 の直前までが問題文) */
+const STATEMENT_HEADINGS = ["演習", "要件", "この演習について", "Part"];
+
+function isStatementHeading(title: string): boolean {
+  return STATEMENT_HEADINGS.some((name) => title.startsWith(name));
+}
+
+export function extractExerciseBrief(source: string): string | null {
   const body = source.replace(/^---\n[\s\S]*?\n---\n/, "");
   const headings = [...body.matchAll(/^(#{2,3}) (.+)$/gm)];
 
-  const parts: string[] = [];
+  const blocks: string[] = [];
 
   for (let i = 0; i < headings.length; i += 1) {
-    const [, hashes, title] = headings[i];
-    if (!title.trim().startsWith("クリア条件")) continue;
+    const level = headings[i][1].length;
+    const title = headings[i][2].trim();
+    if (!title.startsWith("クリア条件")) continue;
 
-    const level = hashes.length;
-    const start = headings[i].index ?? 0;
+    const clearStart = headings[i].index ?? 0;
 
-    // 同じ深さ以上(=より上位)の見出しが来たらそこで終わり。
-    // Part Aの次にPart Bが来る場合も、それぞれ別のまとまりとして取れる。
-    let end = body.length;
+    // 同じ深さ以上の見出しが来たら、そのクリア条件は終わり。
+    // Part Aの次にPart Bが続く場合も、それぞれ別のまとまりとして取れる。
+    let clearEnd = body.length;
     for (let j = i + 1; j < headings.length; j += 1) {
       if (headings[j][1].length <= level) {
-        end = headings[j].index ?? body.length;
+        clearEnd = headings[j].index ?? body.length;
         break;
       }
     }
 
-    parts.push(body.slice(start, end).trim());
+    // 手前に遡って、問題文の始まりになる見出しを探す。
+    let statementIndex = -1;
+    for (let j = i - 1; j >= 0; j -= 1) {
+      if (isStatementHeading(headings[j][2].trim())) {
+        statementIndex = j;
+        break;
+      }
+    }
+
+    let statement = "";
+    if (statementIndex !== -1) {
+      // 問題文の終わりは「クリア条件の直前」か「同じ深さ以上の次の見出し」の早いほう。
+      // レビュー演習の "## まとめ"(クリア条件より前にある締めの文章)を
+      // 問題文に含めないための条件でもある。
+      const statementLevel = headings[statementIndex][1].length;
+      let statementEnd = clearStart;
+      for (let j = statementIndex + 1; j < headings.length; j += 1) {
+        if (headings[j][1].length <= statementLevel) {
+          statementEnd = Math.min(clearStart, headings[j].index ?? clearStart);
+          break;
+        }
+      }
+
+      statement = body.slice(headings[statementIndex].index ?? 0, statementEnd).trim();
+
+      // "## 演習" はカードの見出し(「この演習でやること」)と役割が重なるので落とす。
+      // "要件" や "Part A:..." は、どの部分の話かを示すので残す。
+      statement = statement.replace(/^#{2,3} 演習\s*\n/, "").trim();
+    }
+
+    const clear = body
+      .slice(clearStart, clearEnd)
+      .trim()
+      // 演習ページ側で見出しの体裁を整えるため、レベルは落として太字にする
+      .replace(/^#{2,3} (クリア条件.*)$/m, "**$1**");
+
+    blocks.push([statement, clear].filter((part) => part.length > 0).join("\n\n"));
   }
 
-  if (parts.length === 0) return null;
+  if (blocks.length === 0) return null;
 
-  // 演習ページ側では見出しの文言を自前で出すため、MDXの見出し行は落とす。
-  // (Part別のものは「クリア条件(Part A)」という情報が要るので残す)
-  const text = parts
-    .map((part) =>
-      parts.length === 1
-        ? part.replace(/^#{2,3} クリア条件\s*\n/, "")
-        : part.replace(/^#{2,3} (クリア条件.*)$/m, "**$1**"),
-    )
-    .join("\n\n")
-    .trim();
-
+  const text = sanitizeBrief(blocks.join("\n\n"));
   return text.length > 0 ? text : null;
+}
+
+// 演習ページに出すにあたって、そのままでは都合の悪いものを取り除く。
+function sanitizeBrief(text: string): string {
+  return (
+    text
+      // レビュー演習のコード例に付いている <details>解答を見る</details> は、
+      // 答えそのもの。演習ページには別途「解答例を見る」を用意しているので、
+      // 問題文の側に混ぜない。
+      .replace(/<details>[\s\S]*?<\/details>/g, "")
+      // <TryIt /> は教材ページ専用のコンポーネント。演習ページ側の
+      // compileMDX には渡していないため、残すと未知の要素として描画されてしまう。
+      .replace(/<TryIt\s*\/>/g, "")
+      // 上の削除でできた空行の連続をたたむ
+      .replace(/\n{3,}/g, "\n\n")
+      .trim()
+  );
 }
 
 /** 同じ章の中での前後の演習(教材を続けて読めるようにするため) */

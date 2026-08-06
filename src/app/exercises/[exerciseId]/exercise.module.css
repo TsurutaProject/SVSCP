@@ -40,8 +40,8 @@
   color: var(--color-fg-muted);
 }
 
-/* 教材から持ってきた「クリア条件」。コードエディタの前に置く。 */
-.clearConditions {
+/* 教材から持ってきた「問題文 + クリア条件」。コードエディタの前に置く。 */
+.brief {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-left: 3px solid var(--color-accent);
@@ -50,26 +50,48 @@
   padding: var(--space-4) var(--space-5);
 }
 
-.clearConditionsTitle {
+.briefTitle {
   font-size: 1rem;
   margin-bottom: var(--space-2);
 }
 
-.clearConditionsBody {
+.briefBody {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
 }
 
-.clearConditionsBody ul,
-.clearConditionsBody ol {
+/* 教材側の見出し(要件 / Part A / コード例1 など)は、カードの見出しより
+   小さく見えるように抑える。そのままだとMDXのh2がカード名より大きくなる。 */
+.briefBody :is(h2, h3, h4) {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  margin-top: var(--space-2);
+}
+
+.briefBody pre {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  overflow-x: auto;
+}
+
+.briefBody pre code {
+  background: none;
+  padding: 0;
+}
+
+.briefBody ul,
+.briefBody ol {
   padding-left: var(--space-5);
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
 }
 
-.clearConditionsBody code {
+.briefBody code {
   font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: 0.9em;
   background: var(--color-surface-2);
@@ -78,7 +100,7 @@
 }
 
 /* Part A / Part B の区切り線が主張しすぎないようにする */
-.clearConditionsBody hr {
+.briefBody hr {
   border: 0;
   border-top: 1px solid var(--color-border);
 }

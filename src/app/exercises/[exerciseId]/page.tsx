@@ -7,7 +7,7 @@ import { getAuthenticatedUserId } from "@/lib/supabase/currentUser";
 import { getTeamMemberByUserId } from "@/lib/supabase/queries/teamMembers";
 import { getExerciseNotes } from "@/lib/supabase/queries/exerciseNotes";
 import { findExerciseById } from "@/lib/curriculum/chapters";
-import { loadLesson, extractClearConditions } from "@/lib/curriculum/lessons";
+import { loadLesson, extractExerciseBrief } from "@/lib/curriculum/lessons";
 import { loadAnswer } from "@/lib/curriculum/answers";
 import { isGraded, loadGradingFiles } from "@/lib/curriculum/grading";
 import { hasPlayground, loadPlaygroundFiles } from "@/lib/curriculum/playgrounds";
@@ -63,14 +63,14 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
     isMine: note.teamMemberId === teamMember.id,
   }));
 
-  // 教材の「クリア条件」を演習ページにも出す。
-  // 雛形コードのコメントだけでは、何を満たせばよいかが分かりにくいため。
+  // 教材の「演習の問題文」と「クリア条件」を演習ページにも出す。
+  // 雛形コードのコメントだけでは、何をすればよいかが分かりにくいため。
   const lesson = loadLesson(exerciseId);
-  const clearConditions = lesson ? extractClearConditions(lesson.source) : null;
-  const clearConditionsContent = clearConditions
+  const brief = lesson ? extractExerciseBrief(lesson.source) : null;
+  const briefContent = brief
     ? (
         await compileMDX({
-          source: clearConditions,
+          source: brief,
           // 教材本文と同じくGFM(表など)を解釈できるようにしておく
           options: { mdxOptions: { remarkPlugins: [remarkGfm] } },
         })
@@ -90,12 +90,13 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
       </p>
       <h1 className={styles.title}>{exercise.title}</h1>
 
-      {/* コードエディタの前に置く。「何を満たせばクリアか」を先に読んでから
-          手を動かせるようにするため。 */}
-      {clearConditionsContent && (
-        <section className={styles.clearConditions}>
-          <h2 className={styles.clearConditionsTitle}>クリア条件</h2>
-          <div className={styles.clearConditionsBody}>{clearConditionsContent}</div>
+      {/* コードエディタの前に置く。「何をして、何を満たせばクリアか」を
+          先に読んでから手を動かせるようにするため。
+          中身は 問題文 → クリア条件 の順(Part A/Bがある演習はPartごとに繰り返す)。 */}
+      {briefContent && (
+        <section className={styles.brief}>
+          <h2 className={styles.briefTitle}>この演習でやること</h2>
+          <div className={styles.briefBody}>{briefContent}</div>
         </section>
       )}
 
