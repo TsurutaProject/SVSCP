@@ -208,6 +208,32 @@ if (el) {
 - Next.js固有の演習(ファイル配置やServer Actionなど)は、そのままでは動かせない。
   雛形のコメントでその旨を断ったうえで、ロジック部分だけ試せる形にしている
 
+### 練習用エディタの型チェック
+
+**Sandpackは型を消してJSとして実行するだけで、型チェックを一切しない。**
+`const x: number = "文字列"` がそのまま動いてしまうため、これを補う仕組みを入れてある
+(`checkPlaygroundTypes()` / Server Action `checkPlaygroundCode`)。
+
+- 「実行する」を押したときに、サーバー側でTypeScriptコンパイラを走らせ、
+  結果をエディタの下に出す(`ts`と`react`のみ。HTMLは対象外)
+- **教材で「わざと型を間違えてみよう」と促す場合、これが無いと何も起きない。**
+  1章の型まわりの演習はこの体験が主題なので、書きっぱなしにしないこと
+- **`.d.ts` は「実行時にfsで読むだけ」なのでNext.jsの依存解析に引っかからず、
+  そのままではVercelのサーバー関数に同梱されない。** 同梱されないと、正しいコードでも
+  「Cannot find global type 'Array'」のような組み込み型エラーが大量に出る
+  (ローカルは node_modules が丸ごとあるので気づけず、本番だけ壊れる)
+    - 標準ライブラリ(`lib.*.d.ts`)は `scripts/copy-ts-libs.mjs` でJSONに固め、
+      importして使っている(prebuild/predevで自動生成、`.gitignore`済み)
+    - `next.config.ts` の `outputFileTracingIncludes` は **Next 16のTurbopackビルドでは
+      反映されない**(指定しても `.nft.json` が変わらない)。ここに頼らないこと
+    - Reactの演習は `@types/react` も要る。一時ファイルは `/tmp` に置く
+      (Vercelではプロジェクト配下が読み取り専用)ため、`paths` で .d.ts を直接指している
+- 4章は `process.env` を読ませるが `@types/node` は入れていないため、
+  `process` だけ最小のアンビエント宣言を足している(`AMBIENT_DECLARATIONS`)。
+  教材が他のNode APIを使い始めたら、ここも足すこと
+- **教材が意図的に「誤ったコード」を雛形に載せている演習では、型エラーが出るのが正しい**
+  (ch3-07・ch4-05・ch4-09。レビュー演習や、エラーの読み方を扱う演習)
+
 ### 解答例(`{exercise_id}.answer.md`)
 
 自動採点なしの演習は正誤を確かめる手段がないため、**解答例を必ず1つ置く**。

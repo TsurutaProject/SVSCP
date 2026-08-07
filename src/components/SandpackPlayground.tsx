@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   SandpackProvider,
   SandpackLayout,
@@ -14,6 +14,7 @@ import {
   type SandpackPredefinedTemplate,
 } from "@codesandbox/sandpack-react";
 import type { PlaygroundKind } from "@/lib/curriculum/playgrounds";
+import { checkPlaygroundCode } from "@/app/actions";
 import styles from "./SandpackPlayground.module.css";
 
 type SandpackPlaygroundProps = {
@@ -71,9 +72,16 @@ const CONFIG: Record<
 // autoReload: false にしているため、書いたコードはこのボタンを押すまで反映されない。
 // Sandpack内蔵のRunボタンもあるが、ラベルが英語なので採点ページと文言を揃えて自前で置く。
 // SandpackProviderの子でないと useSandpack() が使えないので、別コンポーネントにしている。
-function RunBar() {
+//
+// あわせて、型チェックの結果もここで出す。Sandpackは型を消してJSとして実行するだけで
+// 型の誤りを一切教えてくれないため、`const x: number = "文字列"` のようなコードが
+// そのまま動いてしまい、1章の型まわりの演習が意図した体験にならないため。
+function RunBar({ language }: { language: "ts" | "react" | null }) {
+  const typeChecked = language !== null;
   const { sandpack } = useSandpack();
   const { code } = useActiveCode();
+  const [typeErrors, setTypeErrors] = useState<string[] | null>(null);
+  const [isChecking, setIsChecking] = useState(false);
 
   // autoReload: false のときエディタの変更は state に入るだけで、バンドラーには
   // 送られない(内部の shouldUpdatePreview が false のまま)。
@@ -81,17 +89,55 @@ function RunBar() {
   // sandpack.runSandpack() はクライアントを作り直すだけで、編集内容は反映されない。
   const handleRun = () => {
     sandpack.updateCurrentFile(code);
+
+    if (!typeChecked) return;
+
+    // 型チェックはサーバー側(TypeScriptコンパイラ)で行う。実行そのものは
+    // 待たせず、結果が返ってきたら下に出す。
+    setIsChecking(true);
+    setTypeErrors(null);
+    const formData = new FormData();
+    formData.set("code", code);
+    formData.set("language", language);
+    void checkPlaygroundCode(formData)
+      .then((result) => setTypeErrors(result.errors))
+      // 型チェックが落ちても、書いたコードを試すこと自体は妨げない
+      .catch(() => setTypeErrors(null))
+      .finally(() => setIsChecking(false));
   };
 
   return (
-    <div className={styles.runBar}>
-      <button className={styles.runButton} type="button" onClick={handleRun}>
-        実行する
-      </button>
-      <span className={styles.runHint}>
-        書き換えたら押してください(押すまで結果は変わりません)。
-      </span>
-    </div>
+    <>
+      <div className={styles.runBar}>
+        <button className={styles.runButton} type="button" onClick={handleRun}>
+          実行する
+        </button>
+        <span className={styles.runHint}>
+          書き換えたら押してください(押すまで結果は変わりません)。
+        </span>
+      </div>
+
+      {typeChecked && !isChecking && typeErrors !== null && typeErrors.length > 0 && (
+        <div role="alert" className={`${styles.typeCheck} ${styles.typeCheckError}`}>
+          <p className={styles.typeCheckTitle}>型エラーがあります</p>
+          <ul className={styles.typeCheckList}>
+            {typeErrors.map((error) => (
+              <li key={error}>{error}</li>
+            ))}
+          </ul>
+          <p className={styles.typeCheckNote}>
+            実行結果は出ていますが、これはSandpackが型を消してから動かしているためです。
+            実際の開発では、この状態ではビルドが通りません。
+          </p>
+        </div>
+      )}
+
+      {typeChecked && !isChecking && typeErrors !== null && typeErrors.length === 0 && (
+        <p role="status" className={`${styles.typeCheck} ${styles.typeCheckOk}`}>
+          型エラーはありません。
+        </p>
+      )}
+    </>
   );
 }
 
@@ -125,7 +171,8 @@ export function SandpackPlayground({ kind, starter }: SandpackPlaygroundProps) {
               <SandpackPreview />
             )}
           </SandpackLayout>
-          <RunBar />
+          {/* HTMLには型の概念が無いので、型チェックはTS/Reactのときだけ行う */}
+          <RunBar language={kind === "html" ? null : kind === "react" ? "react" : "ts"} />
         </SandpackProvider>
       </div>
     </div>

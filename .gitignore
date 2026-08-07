@@ -44,3 +44,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 型チェック用のTypeScript標準ライブラリ定義(scripts/copy-ts-libs.mjs が生成)
+/src/lib/curriculum/generated

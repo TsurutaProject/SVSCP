@@ -11,7 +11,12 @@ import {
 import { createExerciseNote } from "@/lib/supabase/queries/exerciseNotes";
 import { MAX_NOTE_LENGTH } from "@/lib/notes";
 import { loadTypeCheckSource } from "@/lib/curriculum/grading";
-import { checkTypes } from "@/lib/curriculum/typeCheckRunner";
+import { getAuthenticatedUserId } from "@/lib/supabase/currentUser";
+import {
+  checkTypes,
+  checkPlaygroundTypes,
+  type PlaygroundLanguage,
+} from "@/lib/curriculum/typeCheckRunner";
 
 export async function signOut() {
   const supabase = await createClient();
@@ -87,6 +92,27 @@ export async function postExerciseNote(formData: FormData) {
 
   // 投稿したメモが一覧に出るよう、この演習ページを再生成させる
   revalidatePath(`/exercises/${exerciseId}`);
+}
+
+export type PlaygroundTypeCheckResult = { errors: string[] };
+
+// 練習用エディタの「実行する」から呼ばれる型チェック。
+//
+// Sandpackは型を消してJSとして実行するだけなので、型注釈と違う値を代入しても
+// そのまま動いてしまう。1章の型まわりの演習は「型が違うとエラーになる」ことを
+// 体験するのが狙いなので、サーバー側でTypeScriptコンパイラを走らせて補う。
+//
+// 書き込みを伴わない計算だけの処理なので、認証はproxyが検証済みのIDを見るだけにする。
+export async function checkPlaygroundCode(formData: FormData): Promise<PlaygroundTypeCheckResult> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { errors: [] };
+
+  const code = String(formData.get("code") ?? "");
+  if (!code.trim()) return { errors: [] };
+
+  const language: PlaygroundLanguage = formData.get("language") === "react" ? "react" : "ts";
+
+  return { errors: checkPlaygroundTypes(code, language).errors };
 }
 
 export type SubmitGradedExerciseResult = { ok: true } | { ok: false; errors: string[] };
