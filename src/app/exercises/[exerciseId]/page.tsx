@@ -32,6 +32,15 @@ type ExercisePageProps = {
   params: Promise<{ exerciseId: string }>;
 };
 
+// 教材本文と同じくGFM(表など)を解釈できるようにしておく
+async function renderMarkdown(source: string) {
+  const { content } = await compileMDX({
+    source,
+    options: { mdxOptions: { remarkPlugins: [remarkGfm] } },
+  });
+  return content;
+}
+
 export default async function ExercisePage({ params }: ExercisePageProps) {
   const { exerciseId } = await params;
 
@@ -65,17 +74,18 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
 
   // 教材の「演習の問題文」と「クリア条件」を演習ページにも出す。
   // 雛形コードのコメントだけでは、何をすればよいかが分かりにくいため。
+  //
+  // クリア条件だけは折りたたみにする。最初から見えていると「なぜそうするか」を
+  // 考えずに条件を満たすことが目的になってしまうため、
+  // 「まず自分で考えて、詰まったら開く」を選べる形にしている。
   const lesson = loadLesson(exerciseId);
-  const brief = lesson ? extractExerciseBrief(lesson.source) : null;
-  const briefContent = brief
-    ? (
-        await compileMDX({
-          source: brief,
-          // 教材本文と同じくGFM(表など)を解釈できるようにしておく
-          options: { mdxOptions: { remarkPlugins: [remarkGfm] } },
-        })
-      ).content
-    : null;
+  const briefBlocks = await Promise.all(
+    (lesson ? extractExerciseBrief(lesson.source) : []).map(async (block) => ({
+      label: block.clearConditionsLabel,
+      statement: block.statement ? await renderMarkdown(block.statement) : null,
+      clearConditions: block.clearConditions ? await renderMarkdown(block.clearConditions) : null,
+    })),
+  );
 
   return (
     <main className={styles.page}>
@@ -90,13 +100,27 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
       </p>
       <h1 className={styles.title}>{exercise.title}</h1>
 
-      {/* コードエディタの前に置く。「何をして、何を満たせばクリアか」を
-          先に読んでから手を動かせるようにするため。
-          中身は 問題文 → クリア条件 の順(Part A/Bがある演習はPartごとに繰り返す)。 */}
-      {briefContent && (
+      {/* コードエディタの前に置く。問題文は常に見える形、
+          クリア条件は開いたときだけ見える形(Part A/Bがある演習はPartごとに繰り返す)。 */}
+      {briefBlocks.length > 0 && (
         <section className={styles.brief}>
           <h2 className={styles.briefTitle}>この演習でやること</h2>
-          <div className={styles.briefBody}>{briefContent}</div>
+          {briefBlocks.map((block, index) => (
+            <div key={block.label + index} className={styles.briefBlock}>
+              {block.statement && <div className={styles.briefBody}>{block.statement}</div>}
+              {block.clearConditions && (
+                <details className={styles.clearConditions}>
+                  <summary className={styles.clearConditionsSummary}>
+                    <span className={styles.clearConditionsLabel}>{block.label}</span>
+                    <span className={styles.clearConditionsHint}>
+                      まず自分で考えてみて、詰まったら開いてください
+                    </span>
+                  </summary>
+                  <div className={styles.briefBody}>{block.clearConditions}</div>
+                </details>
+              )}
+            </div>
+          ))}
         </section>
       )}
 

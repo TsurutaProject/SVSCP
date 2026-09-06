@@ -58,11 +58,23 @@ function isStatementHeading(title: string): boolean {
   return STATEMENT_HEADINGS.some((name) => title.startsWith(name));
 }
 
-export function extractExerciseBrief(source: string): string | null {
+// 問題文とクリア条件は別々に返す。演習ページ側でクリア条件だけを
+// 折りたたみにするため(先に条件を見せると「なぜそうするか」を考えずに
+// 条件を満たすことが目的になってしまうので、開くかどうかを選べるようにしている)。
+export type ExerciseBrief = {
+  /** 問題文(Markdown)。見つからなければ null */
+  statement: string | null;
+  /** クリア条件(Markdown。見出し行は含まない) */
+  clearConditions: string | null;
+  /** 折りたたみの見出しに出す文言。総合演習は「クリア条件(Part A)」のようになる */
+  clearConditionsLabel: string;
+};
+
+export function extractExerciseBrief(source: string): ExerciseBrief[] {
   const body = source.replace(/^---\n[\s\S]*?\n---\n/, "");
   const headings = [...body.matchAll(/^(#{2,3}) (.+)$/gm)];
 
-  const blocks: string[] = [];
+  const blocks: ExerciseBrief[] = [];
 
   for (let i = 0; i < headings.length; i += 1) {
     const level = headings[i][1].length;
@@ -111,18 +123,24 @@ export function extractExerciseBrief(source: string): string | null {
       statement = statement.replace(/^#{2,3} 演習\s*\n/, "").trim();
     }
 
+    // 見出しの文言は折りたたみの summary 側で出すので、本文からは落とす。
     const clear = body
       .slice(clearStart, clearEnd)
       .trim()
-      // 演習ページ側で見出しの体裁を整えるため、レベルは落として太字にする
-      .replace(/^#{2,3} (クリア条件.*)$/m, "**$1**");
+      .replace(/^#{2,3} クリア条件.*$/m, "")
+      .trim();
 
-    blocks.push([statement, clear].filter((part) => part.length > 0).join("\n\n"));
+    blocks.push({
+      statement: toNullable(sanitizeBrief(statement)),
+      clearConditions: toNullable(sanitizeBrief(clear)),
+      clearConditionsLabel: title,
+    });
   }
 
-  if (blocks.length === 0) return null;
+  return blocks.filter((block) => block.statement !== null || block.clearConditions !== null);
+}
 
-  const text = sanitizeBrief(blocks.join("\n\n"));
+function toNullable(text: string): string | null {
   return text.length > 0 ? text : null;
 }
 

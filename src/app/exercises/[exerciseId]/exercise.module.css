@@ -175,3 +175,55 @@
   border-radius: var(--radius-sm);
   padding: 0.1em 0.35em;
 }
+
+/* Part A / Part B のように複数ある場合、まとまりごとに間隔をあける */
+.briefBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.briefBlock + .briefBlock {
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+/* クリア条件は折りたたみ。最初から見えていると「なぜそうするか」を考えずに
+   条件を満たすことが目的になってしまうため、開くかどうかを選べる形にしている。 */
+.clearConditions {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.clearConditionsSummary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  user-select: none;
+}
+
+.clearConditionsSummary:hover {
+  background: var(--color-surface);
+}
+
+.clearConditionsLabel {
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.clearConditionsHint {
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+}
+
+/* 開いたときの中身。閉じているときは余白も出さない */
+.clearConditions[open] > .briefBody {
+  padding: 0 var(--space-4) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-3);
+}
