@@ -39,11 +39,18 @@ const PREVIEW_HTML = `<!DOCTYPE html>
 
 // propsに依存しないため、モジュールレベルの定数として1つの参照に固定する。
 // (レンダーのたびに新しいオブジェクトを渡すとSandpackがエディタをリセットするため)
+// autoReload: false が要点。既定(true)だと、一度テストを走らせたあとは
+// 1文字打つたびにバンドルし直され、書きかけの壊れたコードの
+// コンパイルエラー(Cannot assign to read only property 'message' など)が
+// コンソールに流れ込んでしまう。falseにすると「採点する」を押したときだけ動く。
+// (代わりに、押したときは自分でバンドラーへ最新のコードを送る必要がある。
+//  GradingRunner の handleRun / listen を参照)
 const SANDPACK_OPTIONS: SandpackOptions = {
   visibleFiles: ["/solution.ts"],
   activeFile: "/solution.ts",
   initMode: "immediate",
   autorun: true,
+  autoReload: false,
 };
 
 const SANDPACK_OPTIONS_REACT: SandpackOptions = {
@@ -51,6 +58,7 @@ const SANDPACK_OPTIONS_REACT: SandpackOptions = {
   activeFile: "/solution.tsx",
   initMode: "immediate",
   autorun: true,
+  autoReload: false,
 };
 
 // Reactの演習でSandpackに追加インストールさせる依存。
@@ -210,13 +218,29 @@ type GradingRunnerProps = {
 // 管理することで、古いクロージャから呼ばれても正しくガードできるようにする。
 function GradingRunner({ status, onSubmit, onFail, onRunRequest }: GradingRunnerProps) {
   const { code } = useActiveCode();
-  const { dispatch } = useSandpack();
+  const { sandpack, dispatch, listen } = useSandpack();
   const codeRef = useRef(code);
   const submittedRef = useRef(false);
+  // 「採点する」が押されて、バンドルの完了を待っている最中かどうか
+  const pendingRunRef = useRef(false);
 
   useEffect(() => {
     codeRef.current = code;
   }, [code]);
+
+  // autoReload: false にしているので、コードを書き換えても自動では何も走らない。
+  // 「採点する」で最新のコードをバンドラーへ送り、その完了(done)を受けてから
+  // テストを実行する。ここで待たずに run-all-tests を投げると、
+  // 1つ前のバンドル(=書き換える前のコード)が採点されてしまう。
+  useEffect(() => {
+    const unsubscribe = listen((message) => {
+      if (message.type !== "done" || !pendingRunRef.current) return;
+      pendingRunRef.current = false;
+      dispatch({ type: "run-all-tests" });
+    });
+
+    return unsubscribe;
+  }, [listen, dispatch]);
 
   useEffect(() => {
     // type-errorに戻ったら、型を直して再テストできるよう送信済みフラグを解除する。
@@ -225,12 +249,16 @@ function GradingRunner({ status, onSubmit, onFail, onRunRequest }: GradingRunner
     }
   }, [status]);
 
-  // 「採点する」ボタン。SandpackTestsのwatchModeを切ってあるので、テストは
-  // ここから明示的に実行を指示したときだけ走る。
+  // 「採点する」ボタン。SandpackTestsのwatchModeを切り、autoReloadも切ってあるので、
+  // テストはここから明示的に指示したときだけ走る。
+  //
+  // updateCurrentFile で今の内容をバンドラーへ送ると、完了時に done が飛んでくる。
+  // 実際の run-all-tests は、上の listen 側でそれを受けてから投げる。
   const handleRun = () => {
     submittedRef.current = false;
+    pendingRunRef.current = true;
     onRunRequest();
-    dispatch({ type: "run-all-tests" });
+    sandpack.updateCurrentFile(codeRef.current);
   };
 
   // SandpackTestsのレンダー中にonCompleteが呼ばれるため、setStateは
@@ -389,7 +417,9 @@ export function SandpackGrader({
             : {})}
         >
           <SandpackLayout>
-            <SandpackCodeEditor showLineNumbers />
+            {/* autoReload: false にすると内蔵の英語「Run」ボタンが出るが、
+                下に日本語の「採点する」を置いているので重複を避けて隠す。 */}
+            <SandpackCodeEditor showLineNumbers showRunButton={false} />
             {showPreview ? <SandpackPreview /> : <SandpackConsole />}
           </SandpackLayout>
 
