@@ -4,7 +4,8 @@
 // (実際に数字を変えるのは次のレッスン)。
 //
 // 練習用のエディタなので採点はされません。
-// このファイルの default export が右側に表示されます。
+// このファイルの default export が右側に表示され、console.log の出力は
+// エディタの下のコンソールに出ます。
 
 export default function App() {
   return <div>ここに Counter を書いて、呼び出してみましょう</div>;

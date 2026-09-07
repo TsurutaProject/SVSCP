@@ -163,14 +163,31 @@ export function SandpackPlayground({ kind, starter }: SandpackPlaygroundProps) {
                 下に日本語の「実行する」を置いているので重複を避けて隠す。 */}
             <SandpackCodeEditor showLineNumbers showRunButton={false} />
             {/* TSはconsole.logの出力を、HTML/Reactは描画結果を見せる。
-                SandpackConsoleはstandaloneを付けないとコードを実行するiframeを
-                持たず、ログが何も出ないので必ず指定すること。 */}
+                standaloneについては下のコメントを参照。 */}
             {kind === "ts" ? (
               <SandpackConsole standalone showHeader={false} />
             ) : (
               <SandpackPreview />
             )}
           </SandpackLayout>
+
+          {/* Reactの演習は、描画結果だけでなく console.log の出力も要る
+              (「ボタンを押すとログが出る」ことを確かめる演習があるため)。
+              エディタ・プレビューと3列に並べると窮屈なので、下の段に置く。
+
+              ここでは standalone を「付けない」のが正しい。付けると自前の実行用
+              iframeを持ち、そちらのログしか見なくなるため、隣のプレビューで
+              起きたログが一切拾えない。付けない場合はグローバルリスナーとして
+              全クライアントのログを受け取れる。
+              (TS版はコードを実行するクライアントが他に無いので、逆に必須) */}
+          {kind === "react" && (
+            <div className={styles.consoleRow}>
+              <SandpackLayout>
+                <SandpackConsole resetOnPreviewRestart />
+              </SandpackLayout>
+            </div>
+          )}
+
           {/* HTMLには型の概念が無いので、型チェックはTS/Reactのときだけ行う */}
           <RunBar language={kind === "html" ? null : kind === "react" ? "react" : "ts"} />
         </SandpackProvider>

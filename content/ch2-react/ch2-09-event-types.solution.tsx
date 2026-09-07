@@ -3,7 +3,7 @@
 // console.log で出力します。import type { ChangeEvent } from "react" を使うこと。
 //
 // 練習用のエディタなので採点はされません。
-// ログはブラウザの開発者ツールのコンソールに出ます。
+// ログはエディタの下のコンソールに出ます。
 
 export default function App() {
   return (
