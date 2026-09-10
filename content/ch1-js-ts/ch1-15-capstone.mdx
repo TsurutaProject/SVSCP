@@ -10,6 +10,12 @@ order: 15
 
 **Part A**はTrain_Proto-Typeの世界観(電車の運行管理)を題材に、JS前提知識だけで完結する形。**Part B**はCake-Gameの世界観(ケーキの注文管理)を題材に、TypeScriptの型を使う形。どちらも、1つでも文法が抜けていると手が止まるように設計してあるので、1章を通して読んでいれば解けるはず。
 
+### この演習の進め方
+
+Part A・Part Bとも、**1つの関数(または型)ごとにステップが分かれている**。1ステップでやることは、これまでのレッスン1回ぶんくらいの量しかない。上から順に、**1つ書くたびに「採点する」を押して**進めてほしい。1つでも通れば、その調子で残りも通る。
+
+各ステップには「使う知識」として、対応するレッスンへのリンクを付けてある。**リンクは新しいタブで開く**ので、演習ページに書いたコードは消えない。手が止まったら、遠慮なくそのレッスンを開いて読み直してほしい。
+
 ---
 
 ## 一緒にやってみる
@@ -55,11 +61,15 @@ const trains = [
 ];
 ```
 
-以下5つの関数を作成してください。
+以下5つの関数を、上から順に作成してください。後半の関数は前半の関数を使うので、この順番で書くのが一番早い。
 
 ### 1. `getDelayedTrains(trains)`
 
 遅延してる(`delayMinutes`が0より大きい)電車だけを抽出した配列を返す。`.filter()`を使うこと。
+
+まずはこの1つだけを書いて、採点を通してみてほしい。エディタの使い方と`export`の付け方が、ここで確認できる。
+
+使う知識:<a href="/lessons/ch1-03-array-map-filter" target="_blank" rel="noreferrer">1-3 .map() / .filter()</a>、<a href="/lessons/ch1-01-arrow-function" target="_blank" rel="noreferrer">1-1 アロー関数</a>、<a href="/lessons/ch1-06-modules" target="_blank" rel="noreferrer">1-6 import / export(モジュール)</a>
 
 ### 2. `formatDelayReport(train)`
 
@@ -69,17 +79,37 @@ const trains = [
 
 分割代入・テンプレートリテラル・三項演算子を組み合わせて書くこと。
 
+3つを一度に書こうとせず、**まず遅延してる場合の文字列だけ**を作る。それが出たら、遅延してない場合を三項演算子で足す。
+出力する記号(`「`や`:`)は、上の例と1文字ずつ見比べてほしい。ここのズレが、採点で落ちる一番多い原因。
+
+使う知識:<a href="/lessons/ch1-02-destructuring-spread" target="_blank" rel="noreferrer">1-2 分割代入・スプレッド構文</a>、<a href="/lessons/ch1-04-template-literals" target="_blank" rel="noreferrer">1-4 テンプレートリテラル</a>
+
 ### 3. `updateDelay(train, newDelay)`
 
 電車オブジェクトと新しい遅延分数を受け取り、`delayMinutes`だけを更新した**新しいオブジェクト**を返す(元の`train`オブジェクトは変更しないこと)。スプレッド構文を使うこと。
+
+「元を変更しない」が要点。`train.delayMinutes = newDelay`のように直接書き換えると、見た目の結果は合っていても条件を満たさない。
+**元のオブジェクトを丸ごと写した新しいオブジェクトを作り、1つのプロパティだけ上書きする**、という形を思い出してほしい。
+
+使う知識:<a href="/lessons/ch1-02-destructuring-spread" target="_blank" rel="noreferrer">1-2 分割代入・スプレッド構文</a>
 
 ### 4. `getDelaySummary(trains)`
 
 電車の配列を受け取り、**遅延してる電車だけ**について`formatDelayReport`と同じ形式の文字列の配列を返す。`.filter()`と`.map()`を組み合わせて書くこと。
 
+ここは新しいことをしない。**1と2で作った関数を、そのまま繋ぐだけ**。
+「先に絞り込む」→「残ったものを変換する」の順に考えると、`.filter()`と`.map()`のどちらを先に書くかが決まる。
+
+使う知識:<a href="/lessons/ch1-03-array-map-filter" target="_blank" rel="noreferrer">1-3 .map() / .filter()</a>
+
 ### 5. `getFirstTrainName(trains)`
 
 電車の配列を受け取り、先頭の電車の名前を返す。ただし`trains`が`undefined`や空配列の場合でもエラーにならず、`"該当なし"`を返すようにすること。オプショナルチェイニング(`?.`)とNull合体演算子(`??`)を使うこと。
+
+`trains`が`undefined`のとき、`trains[0]`のとき、`trains[0].name`のとき、と**値が無いかもしれない場所が2か所ある**。
+どこで止まる可能性があるかを先に数えてから書くと、`?.`をどこに置くかが決まる。
+
+使う知識:<a href="/lessons/ch1-05-optional-chaining" target="_blank" rel="noreferrer">1-5 オプショナルチェイニング(?.)</a>
 
 ### クリア条件(Part A)
 
@@ -92,7 +122,8 @@ const trains = [
 
 ## Part B:ケーキの注文管理(TypeScript)
 
-以下の条件を満たす、ケーキ注文管理用の型と関数を作成してください。
+以下の条件を満たす、ケーキ注文管理用の型と関数を、上から順に作成してください。
+**最初に型(1)を決めてしまえば、残りの関数はその型に従って書くだけ**になる。ここがPart Aとの一番の違い。
 
 ### 1. `Order`型を定義する
 
@@ -102,13 +133,27 @@ const trains = [
 - `toppings`(文字列の配列、オプション。トッピングは0〜複数、指定されないこともある)
 - `isCompleted`(真偽値、完了状態)
 
+4つのプロパティを、**1つずつ上の説明と照らし合わせながら**書いてほしい。
+特に`toppings`は「無いこともある」の扱いが要点で、これを普通の配列として書くと、後の4でつまずく。
+
+使う知識:<a href="/lessons/ch1-09-interface" target="_blank" rel="noreferrer">1-9 interface / オブジェクトの型</a>、<a href="/lessons/ch1-10-union-types" target="_blank" rel="noreferrer">1-10 union type / リテラル型</a>、<a href="/lessons/ch1-11-optional-null" target="_blank" rel="noreferrer">1-11 optional property / null許容</a>
+
 ### 2. `completeOrder(order: Order): Order`
 
 注文を受け取り、`isCompleted`を`true`にした**新しいオブジェクト**を返す(元のオブジェクトは変更しないこと)。スプレッド構文を使うこと。
 
+やることはPart Aの`updateDelay`と同じ。違うのは、引数と戻り値に型が付いていることだけ。
+型が付いていると、書き間違えたときにエディタが先に教えてくれる。
+
+使う知識:<a href="/lessons/ch1-08-function-types" target="_blank" rel="noreferrer">1-8 関数の型</a>、<a href="/lessons/ch1-02-destructuring-spread" target="_blank" rel="noreferrer">1-2 分割代入・スプレッド構文</a>
+
 ### 3. `getPendingOrders(orders: Order[]): Order[]`
 
 注文の配列を受け取り、`isCompleted`が`false`の注文だけを抽出した配列を返す。
+
+これもPart Aの`getDelayedTrains`と同じ形。`Order[]`という書き方(「`Order`の配列」)に慣れるのが、ここの目的。
+
+使う知識:<a href="/lessons/ch1-12-nested-types" target="_blank" rel="noreferrer">1-12 配列・オブジェクトの型を組み合わせる</a>、<a href="/lessons/ch1-03-array-map-filter" target="_blank" rel="noreferrer">1-3 .map() / .filter()</a>
 
 ### 4. `formatOrderSummary(order: Order): string`
 
@@ -118,9 +163,24 @@ const trains = [
 
 `cakeKind`が`"shortcake"`なら`"ショートケーキ"`、`"chocolate"`なら`"チョコケーキ"`と表示すること(union typeの値に応じた分岐が必要)。
 
+このステップだけ、考えることが3つある。**1つずつ順に片付けるとよい**:
+
+1. まず`cakeKind`を日本語に変える部分だけを書き、トッピングは無視して文字列を組み立てる
+2. 次に、トッピングがある場合の`(トッピング:…)`の部分を作る(複数を「、」でつなぐ形)
+3. 最後に、トッピングが無い場合とで出し分ける
+
+1で止まってもよい。2に進む前に、一度動かして文字列が合っているか見てほしい。
+
+使う知識:<a href="/lessons/ch1-10-union-types" target="_blank" rel="noreferrer">1-10 union type / リテラル型</a>、<a href="/lessons/ch1-11-optional-null" target="_blank" rel="noreferrer">1-11 optional property / null許容</a>、<a href="/lessons/ch1-04-template-literals" target="_blank" rel="noreferrer">1-4 テンプレートリテラル</a>
+
 ### 5. `ToppingStock`型を定義する
 
 トッピングの種類(`"strawberry" | "cream" | "banana"`という新しいunion typeを作ること)ごとの在庫数(`number`)を表す型を、`Record`を使って定義すること。
+
+ここは関数ではなく型だけ。「**何をキーにして、何を値にするか**」を日本語で言えれば、`Record`に渡すものが決まる。
+union typeにも名前を付けて、`Record`の中では名前で書くと読みやすい。
+
+使う知識:<a href="/lessons/ch1-14-utility-types" target="_blank" rel="noreferrer">1-14 ユーティリティ型入門(Record, Partial, Exclude)</a>、<a href="/lessons/ch1-10-union-types" target="_blank" rel="noreferrer">1-10 union type / リテラル型</a>
 
 ### クリア条件(Part B)
 

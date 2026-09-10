@@ -8,11 +8,12 @@ order: 6
 
 3-1から3-5までで作ってきた部品(データ構造、utils、SVG路線図、クリック配置、データ操作)を、**1つの完成した`DispatchPanel`コンポーネント**としてまとめる、3章の総仕上げ。
 
-## 完成イメージ
+### この演習の進め方
 
-- 画面上部:SVGの路線図(駅を`<circle>`、レールを`<line>`で表示、レールをクリックすると配置状態が切り替わる)
-- 画面中部:電車の一覧(名前・速度・遅延状況を表示)
-- 画面下部:操作パネル(検索、並び替え、警告表示)
+新しく覚えることは無い。**3-1から3-5でやったことを、順番に積み上げていくだけ**。
+そのぶん分量はあるので、**7つのステップに分けてある**。上から順に、1ステップ書くたびに「実行する」を押して、動くことを確かめてから次に進んでほしい。
+
+各ステップには「使う知識」として、対応するレッスンへのリンクを付けてある。**リンクは新しいタブで開く**ので、演習ページに書いたコードは消えない。手が止まったら、遠慮なくそのレッスンを開いて読み直してほしい。
 
 ## 一緒にやってみる
 
@@ -42,7 +43,13 @@ const countDelayed = (trains: { delayMinutes: number }[]): number =>
 
 ## 要件
 
-以下のデータ構造を土台にする(3-1で定義したもの):
+できあがりは、上から順にこの3段の画面になる:
+
+- 画面上部:SVGの路線図(駅を`<circle>`、レールを`<line>`で表示、レールをクリックすると配置状態が切り替わる)
+- 画面中部:電車の一覧(名前・速度・遅延状況を表示)
+- 画面下部:操作パネル(検索、並び替え、警告表示)
+
+土台にするデータ構造は以下(3-1で定義したもの。3つとも、サンプルデータごと雛形コードに入れてある):
 
 ```ts
 interface Train {
@@ -55,6 +62,10 @@ interface Train {
 interface Rail {
   id: string
   type: "fast" | "normal"
+  // 3-1の Rail に、線を引くための始点・終点を足したもの
+  fromX: number
+  toX: number
+  y: number
   isPlaced: boolean
 }
 
@@ -66,34 +77,87 @@ interface Station {
 }
 ```
 
-### 1. utilsの用意(3-2の復習)
+これを、7つのステップで組み立てていく。
 
-`utils/trainUtils.ts`に、以下の関数を実装する(すでに3-2で作成済みならそのまま使ってよい):
+### ステップ1:utilsを用意する(3-2, 3-5の復習)
+
+まず、画面のことは一切考えず、**計算だけをする関数**を5つ書く(すでに3-2・3-5で作成済みならそのまま使ってよい):
 
 - `countDelayedTrains(trains: Train[]): number`
 - `getAverageSpeed(trains: Train[]): number`
-- `findTrainByName(trains: Train[], name: string): Train | undefined`(3-5)
-- `hasAnyDelayedTrain(trains: Train[]): boolean`(3-5)
-- `sortBySpeedDescending(trains: Train[]): Train[]`(3-5、元の配列を変更しないこと)
+- `findTrainByName(trains: Train[], name: string): Train | undefined`
+- `hasAnyDelayedTrain(trains: Train[]): boolean`
+- `sortBySpeedDescending(trains: Train[]): Train[]`(元の配列を変更しないこと)
 
-### 2. SVG路線図(3-3, 3-4の復習)
+本来は`utils/trainUtils.ts`という別ファイルに置くところだが、この練習用エディタは1ファイル構成なので、**ファイルの上のほうにまとめて置く**形で書いてほしい。「コンポーネントの外に出す」という点は同じ。
 
-`stations`(3駅程度)と`rails`(駅と駅の間に配置する)を、`<svg>` + `<circle>` + `<line>`で表示する。レールをクリックすると`isPlaced`が反転する(3-4の関数型更新パターンを使うこと)。
+書けたら、雛形のサンプルデータを渡して`console.log`し、エディタの下のコンソールで結果を確かめる。
+**ここで値が合っていることを先に確かめておくと、後で画面がおかしいときに「計算が違うのか、表示が違うのか」で迷わない。**
 
-### 3. 電車一覧と操作パネル
+使う知識:<a href="/lessons/ch3-02-extract-utils" target="_blank" rel="noreferrer">3-2 ロジックをコンポーネントから切り出す</a>、<a href="/lessons/ch3-05-find-some-sort" target="_blank" rel="noreferrer">3-5 .find() / .some() / .sort()</a>
 
-- 電車の名前で検索できる入力欄(`onChange`、`findTrainByName`を使用)
-- 「速度順に並び替え」ボタン(`sortBySpeedDescending`を使用、結果を新しいstateとして保持する)
-- `hasAnyDelayedTrain(trains)`が`true`の場合だけ、`&&`を使って「遅延している電車があります」という警告を表示する(2章の条件付きレンダリングの復習)
-- 電車一覧は`.map()` + `key`でリスト表示する
+### ステップ2:路線図を描く(3-3の復習)
+
+`stations`(3駅程度)と`rails`(駅と駅の間に1本ずつ)のデータを用意し、`<svg>`の中に`<circle>`(駅)と`<line>`(レール)で表示する。
+
+この時点ではクリックも状態もいらない。**線と丸が意図した位置に出ること**だけを確かめる。
+座標が合わないときは、`<svg>`の表示範囲と、駅の`x`・`y`の値を見比べる。
+
+使う知識:<a href="/lessons/ch3-03-svg-basics" target="_blank" rel="noreferrer">3-3 簡易SVGで路線図を描く</a>
+
+### ステップ3:レールをクリックで配置できるようにする(3-4の復習)
+
+`rails`を`useState`で持ち、レールをクリックすると、そのレールの`isPlaced`だけが反転するようにする。
+`isPlaced`の値で線の見た目(色や太さなど)を変えて、切り替わったことが目で分かるようにする。
+
+ここは**3-4の関数型更新パターンをそのまま使う**。「クリックされた1本だけを差し替えた、新しい配列を作る」という形になる。
+元の配列を書き換えるとReactが変化に気づかず、クリックしても見た目が変わらない。
+
+使う知識:<a href="/lessons/ch3-04-click-to-place" target="_blank" rel="noreferrer">3-4 クリックでレールを選択・配置</a>、<a href="/lessons/ch2-04-usestate" target="_blank" rel="noreferrer">2-4 useStateの基礎</a>
+
+### ステップ4:電車の一覧を表示する
+
+路線図の下に、電車の一覧を`.map()` + `key`で並べる。1件ごとに、名前・速度・遅延状況を出す。
+
+まだ検索も並び替えもいらない。全件がそのまま並ぶところまで。
+
+使う知識:<a href="/lessons/ch2-07-list-rendering-key" target="_blank" rel="noreferrer">2-7 リストレンダリングとkey</a>、<a href="/lessons/ch3-01-data-and-state" target="_blank" rel="noreferrer">3-1 データ構造とstate管理</a>
+
+### ステップ5:名前で検索できるようにする
+
+入力欄を1つ置き、入力された名前で`findTrainByName`を使って電車を探し、見つかった1件を表示する。
+
+考えどころは、**入力された文字列も状態**だということ。`onChange`のたびに状態を更新し、その状態を使って探す。
+`findTrainByName`は見つからないときに`undefined`を返すので、**見つからなかった場合の表示**も決めておく必要がある。
+
+使う知識:<a href="/lessons/ch3-05-find-some-sort" target="_blank" rel="noreferrer">3-5 .find() / .some() / .sort()</a>、<a href="/lessons/ch2-09-event-types" target="_blank" rel="noreferrer">2-9 イベントの型</a>
+
+### ステップ6:速度順に並び替えるボタンを足す
+
+「速度順に並び替え」ボタンを置き、押すと`sortBySpeedDescending`の結果で一覧の並びが変わるようにする。結果は新しいstateとして保持する。
+
+`.sort()`は元の配列をその場で並び替えてしまうメソッドなので、**そのまま使うとstateを直接書き換えたことになる**。
+3-5でやったとおり、先に配列を複製してから並び替える形になっているかを確かめてほしい。
+
+使う知識:<a href="/lessons/ch3-05-find-some-sort" target="_blank" rel="noreferrer">3-5 .find() / .some() / .sort()</a>、<a href="/lessons/ch2-04-usestate" target="_blank" rel="noreferrer">2-4 useStateの基礎</a>
+
+### ステップ7:遅延の警告を出す
+
+`hasAnyDelayedTrain(trains)`が`true`の場合だけ、`&&`を使って「遅延している電車があります」という警告を表示する。
+
+最後のステップは、ステップ1で作った関数を1つ呼ぶだけ。**計算はutilsに、表示はコンポーネントに**という3章の狙いが、ここで一番はっきり出る。
+確かめるときは、サンプルデータの`delayMinutes`を全部`0`にして、警告が消えることも見ておく。
+
+使う知識:<a href="/lessons/ch2-06-conditional-rendering" target="_blank" rel="noreferrer">2-6 条件付きレンダリング</a>
 
 ### クリア条件
 
-- `utils/trainUtils.ts`に5つの関数が、コンポーネントとは独立して実装されていること
-- SVGの路線図が表示され、レールのクリックで配置状態が切り替わること
-- 検索機能が`findTrainByName`を使って正しく動作すること
-- 並び替えボタンが、元の配列を変更せず新しい配列を作って表示を更新すること
-- 遅延電車がいる場合だけ、警告メッセージが表示されること
+- 5つの関数が、コンポーネントとは独立して実装されていること(ステップ1)
+- SVGの路線図が表示され、レールのクリックで配置状態が切り替わること(ステップ2, 3)
+- 電車一覧が`.map()` + `key`で表示されていること(ステップ4)
+- 検索機能が`findTrainByName`を使って正しく動作すること(ステップ5)
+- 並び替えボタンが、元の配列を変更せず新しい配列を作って表示を更新すること(ステップ6)
+- 遅延電車がいる場合だけ、警告メッセージが表示されること(ステップ7)
 
 ---
 

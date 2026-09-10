@@ -1,11 +1,14 @@
 3-1〜3-5の部品を1つにまとめた例です。**関数を上、コンポーネントを下**という並びにしています。
 
+型(`Train` / `Rail` / `Station`)とサンプルデータは、雛形コードに最初から入っています。ここでは`Rail`と`Station`を説明のために再掲していますが、雛形の上に書き足す場合は、型の定義を二重に書かないでください。
+
 ```tsx
 import { useState } from "react";
 import type { ChangeEvent } from "react";
 
 interface Rail {
   id: string;
+  type: "fast" | "normal";
   fromX: number;
   toX: number;
   y: number;
@@ -42,18 +45,11 @@ function sortBySpeedDescending(trains: Train[]): Train[] {
 }
 
 // --- ここから画面(3-3, 3-4 + 2章の復習) ---
-const stations: Station[] = [
-  { id: "s1", name: "東京", x: 20, y: 50 },
-  { id: "s2", name: "新横浜", x: 100, y: 50 },
-  { id: "s3", name: "名古屋", x: 180, y: 50 },
-];
+// stations / initialRails は雛形コードに入っているものをそのまま使う
 
 function DispatchPanel() {
   const [trains, setTrains] = useState<Train[]>(initialTrains);
-  const [rails, setRails] = useState<Rail[]>([
-    { id: "r1", fromX: 20, toX: 100, y: 50, isPlaced: false },
-    { id: "r2", fromX: 100, toX: 180, y: 50, isPlaced: false },
-  ]);
+  const [rails, setRails] = useState<Rail[]>(initialRails);
   const [keyword, setKeyword] = useState("");
 
   const toggleRail = (railId: string) => {

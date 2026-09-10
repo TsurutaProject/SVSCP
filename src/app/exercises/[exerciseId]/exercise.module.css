@@ -99,6 +99,15 @@
   padding: 0.1em 0.35em;
 }
 
+/* 総合演習の「使う知識」から、対応するレッスンへ飛ぶリンク。
+   target="_blank" で別タブに開く(同じタブで移動すると、エディタに
+   書きかけのコードが失われるため)。
+   globals.cssで a は color: inherit にしているので、ここで色を戻す。 */
+.briefBody a {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
 /* Part A / Part B の区切り線が主張しすぎないようにする */
 .briefBody hr {
   border: 0;

@@ -89,7 +89,11 @@
   margin-top: 0.35rem;
 }
 
+/* 教材本文中のリンク(総合演習の「使う知識」など)。
+   globals.cssで a は color: inherit にしているので、ここで色を戻さないと
+   本文と見分けがつかず、リンクだと気づけない。 */
 .prose a {
+  color: var(--color-accent);
   text-decoration: underline;
 }
 

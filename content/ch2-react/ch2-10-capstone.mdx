@@ -10,6 +10,12 @@ order: 10
 
 **Part A**は電車ゲームの`showSpeed`(速度表示の切り替え)と`fastRailCount`(高速レールの集計)を土台にした「速度表示パネル」。**Part B**はケーキゲームの`CustomerQueue`(注文キュー)と`GuidedTutorial`の自動スクロールを土台にした「注文キュー」。
 
+### この演習の進め方
+
+Part A・Part Bとも、**ステップに分けてある**。1つのステップでやることは、これまでのレッスン1回ぶんくらいの量しかない。上から順に、**1ステップ書くたびに「実行する」を押して動くことを確かめてから**次に進んでほしい。まとめて書いてから動かすと、どこが原因で動かないのか分からなくなる。
+
+各ステップには「使う知識」として、対応するレッスンへのリンクを付けてある。**リンクは新しいタブで開く**ので、演習ページに書いたコードは消えない。手が止まったら、遠慮なくそのレッスンを開いて読み直してほしい。
+
 ---
 
 ## 一緒にやってみる
@@ -40,7 +46,8 @@ function StatusPanel({ label }: { label: string }) {
 
 ## Part A:電車の速度表示パネル
 
-以下のようなデータを受け取るとする:
+レールの一覧を出し、「速度表示のオン/オフ」と「種類での絞り込み」ができるパネルを作る。
+扱うデータはこの形(雛形コードにも同じものが入れてある):
 
 ```ts
 interface Rail {
@@ -49,27 +56,66 @@ interface Rail {
 }
 ```
 
-### 要件
+**表示 → 状態 → 操作**の順に、4ステップで組み立てていく。
 
-1. **`RailPanel`**というコンポーネントを作成する。Propsとして`rails: Rail[]`を受け取る(1-1, 1-2)
-2. `showSpeed`という状態を`useState`で管理し、初期値は`false`にする(4)
-3. 「速度表示を切り替える」ボタンを設置し、押すたびに`showSpeed`を反転させる(3, 4)
-4. `showSpeed`が`true`の時だけ、`&&`を使って「高速レール数:○本」という表示を出す(6)。本数は`rails`を`.filter()`で絞り込んで数える(1章の知識の再利用)
-5. `rails`を`.map()`で一覧表示し、`key`には`id`を使う(7)。それぞれの項目は、`type`が`"fast"`かどうかで、三項演算子を使って見た目(例:文字色や、末尾に付ける記号)を変える(6)
-6. レール一覧の上に、`<select>`(種類でフィルタする、`"all" | "fast" | "normal"`)を設置し、`onChange`イベントの型を`ChangeEvent<HTMLSelectElement>`として明示的に書く(9)
+### ステップA-1:レールの一覧を表示する
+
+`RailPanel`というコンポーネントを作り、Propsとして`rails: Rail[]`を受け取る。
+受け取った配列を`.map()`で並べ、`key`には`id`を使う。
+
+この段階では、状態もイベントも一切いらない。**渡した4本のレールが画面に並ぶところまで**を確かめる。
+ここが出れば、あとは「この一覧に何を足すか」の話だけになる。
+
+使う知識:<a href="/lessons/ch2-01-components-jsx" target="_blank" rel="noreferrer">2-1 コンポーネントとJSXの基本</a>、<a href="/lessons/ch2-02-props" target="_blank" rel="noreferrer">2-2 Props(受け渡し+型付け)</a>、<a href="/lessons/ch2-07-list-rendering-key" target="_blank" rel="noreferrer">2-7 リストレンダリングとkey</a>
+
+### ステップA-2:種類によって見た目を変える
+
+一覧の各項目を、`type`が`"fast"`かどうかで見た目が変わるようにする。
+三項演算子を使い、文字色や、末尾に付ける記号などを出し分ける。
+
+先に「`fast`のときは何を出したいか」「`normal`のときは何を出したいか」を日本語で決めてしまうと、
+そのまま1つの三項演算子に置き換えられる。凝った見た目にする必要はない。
+
+使う知識:<a href="/lessons/ch2-06-conditional-rendering" target="_blank" rel="noreferrer">2-6 条件付きレンダリング</a>
+
+### ステップA-3:速度表示のオン/オフを作る
+
+`showSpeed`という状態を`useState`で持つ(初期値は`false`)。
+「速度表示を切り替える」ボタンを置き、押すたびに`showSpeed`を反転させる。
+`showSpeed`が`true`のときだけ、`&&`で「高速レール数:○本」という行を出す。
+本数は`rails`を`.filter()`で絞り込んで数える(1章の`.filter()`の再利用)。
+
+ここも2段階に分けるとよい。**まず「ボタンを押すと状態が変わる」ことだけ**を、
+`showSpeed`の値をそのまま画面に出して確かめる。それが動いてから、`&&`で表示を出し分ける。
+こうしておくと、動かないときに「ボタンが悪いのか、表示条件が悪いのか」で迷わない。
+
+使う知識:<a href="/lessons/ch2-03-event-handling" target="_blank" rel="noreferrer">2-3 イベントハンドリング</a>、<a href="/lessons/ch2-04-usestate" target="_blank" rel="noreferrer">2-4 useStateの基礎</a>、<a href="/lessons/ch2-06-conditional-rendering" target="_blank" rel="noreferrer">2-6 条件付きレンダリング</a>
+
+### ステップA-4:種類で絞り込む`<select>`を足す
+
+レール一覧の上に`<select>`を置き、`"all" | "fast" | "normal"`で絞り込めるようにする。
+`onChange`ハンドラの引数には、`ChangeEvent<HTMLSelectElement>`型を明示的に書く。
+
+考えどころは2つ。**選ばれている種類も状態**なので、`useState`がもう1つ増える。
+そして一覧に出す配列は、その状態が`"all"`かどうかで変わる。
+このとき**元の`rails`は書き換えない**。表示用の配列を別に作って、それを`.map()`する。
+
+使う知識:<a href="/lessons/ch2-09-event-types" target="_blank" rel="noreferrer">2-9 イベントの型(React.MouseEventなど)</a>、<a href="/lessons/ch2-04-usestate" target="_blank" rel="noreferrer">2-4 useStateの基礎</a>
 
 ### クリア条件(Part A)
 
-- `showSpeed`の切り替えが`useState`で正しく実装されていること
-- `&&`による条件付きレンダリングが正しく動作すること
-- `.map()` + `key`によるリスト表示が正しく行われていること
-- `<select>`の`onChange`ハンドラに`ChangeEvent<HTMLSelectElement>`型が明示されていること
+- `.map()` + `key`によるリスト表示が正しく行われていること(A-1)
+- `type`による見た目の出し分けが三項演算子で書かれていること(A-2)
+- `showSpeed`の切り替えが`useState`で正しく実装されていること(A-3)
+- `&&`による条件付きレンダリングが正しく動作すること(A-3)
+- `<select>`の`onChange`ハンドラに`ChangeEvent<HTMLSelectElement>`型が明示されていること(A-4)
 
 ---
 
 ## Part B:ケーキの注文キュー
 
-以下のようなデータを受け取るとする(1章総合演習の`Order`型をベースにする):
+注文の一覧を出し、「完了」ボタンで押された注文を強調し、注文が増えたら一番下まで自動でスクロールするキューを作る。
+扱うデータはこの形(1章総合演習の`Order`型をベース。雛形コードにも同じものが入れてある):
 
 ```ts
 interface Order {
@@ -80,22 +126,70 @@ interface Order {
 }
 ```
 
-### 要件
+Part Aより部品が多いので、**5ステップに分けてある**。1つずつ動かしながら進めてほしい。
 
-1. **`OrderQueue`**というコンポーネントを作成する。Propsとして`orders: Order[]`と、注文完了時に呼ぶ`onComplete: (orderId: string) => void`を受け取る(1-1, 1-2)
-2. `orders`が空配列の場合は、三項演算子を使って「注文はありません」という表示を出す。1件以上ある場合は、通常のリスト表示をする(6)
-3. `orders`を`.map()`で一覧表示し、`key`には`id`を使う(7)。各項目には「完了」ボタンをつけ、押すと`onComplete(order.id)`を呼ぶ(2, 3)
-4. **`highlightedId`**という状態を`useState<string | null>`で管理する。「完了」ボタンが押された注文のidを一時的に`highlightedId`にセットし(押された項目を強調表示するため)、三項演算子でハイライト用のスタイルを出し分ける(4, 6)
-5. **`useRef`**を使って、キューの一番下を指す空の`<div>`への参照を作る(5)
-6. **`useEffect`**を使い、`orders.length`が変化するたび(新しい注文が増えるたび)に、その`<div>`まで`scrollIntoView({ behavior: "smooth" })`で自動スクロールする(8)
+### ステップB-1:注文の一覧を表示する
+
+`OrderQueue`というコンポーネントを作り、Propsとして`orders: Order[]`を受け取る。
+`.map()`で一覧にし、`key`には`id`を使う。各項目には、注文者名とケーキの種類を出す。
+
+やっていることはステップA-1と同じ。まだボタンも状態もいらない。
+
+使う知識:<a href="/lessons/ch2-02-props" target="_blank" rel="noreferrer">2-2 Props(受け渡し+型付け)</a>、<a href="/lessons/ch2-07-list-rendering-key" target="_blank" rel="noreferrer">2-7 リストレンダリングとkey</a>
+
+### ステップB-2:注文が0件のときの表示を足す
+
+`orders`が空配列のときは、三項演算子で「注文はありません」と出す。1件以上あるときは、B-1で作った一覧を出す。
+
+書けたら、渡す配列を一度**空にして**動かし、本当に切り替わるかを確かめる。
+確かめたら元に戻す。「両方の場合を実際に見る」までがこのステップ。
+
+使う知識:<a href="/lessons/ch2-06-conditional-rendering" target="_blank" rel="noreferrer">2-6 条件付きレンダリング</a>
+
+### ステップB-3:「完了」ボタンを足す
+
+各項目に「完了」ボタンを付ける。押されたら`onComplete(order.id)`を呼ぶ。
+`onComplete: (orderId: string) => void`も、Propsとして受け取る。
+
+ここでのポイントは、**`OrderQueue`自身は注文を消さない**こと。
+「どの注文が押されたか」を親に伝えるだけで、その後どうするかは親が決める。
+まずは親側で受け取った`id`を`console.log`し、エディタの下のコンソールに正しい`id`が出るかを確かめる。
+表示が変わらなくても、ここでは正常。
+
+使う知識:<a href="/lessons/ch2-02-props" target="_blank" rel="noreferrer">2-2 Props(受け渡し+型付け)</a>、<a href="/lessons/ch2-03-event-handling" target="_blank" rel="noreferrer">2-3 イベントハンドリング</a>
+
+### ステップB-4:押された注文を強調表示する
+
+`highlightedId`という状態を`useState<string | null>`で持つ(初期値は`null`)。
+「完了」ボタンが押されたら、その注文の`id`を`highlightedId`にセットする。
+一覧の各項目では、`highlightedId`が自分の`id`と一致するかを三項演算子で見て、スタイルを出し分ける。
+
+`useState<string | null>`の`<string | null>`は、「まだ何も選ばれていない状態(`null`)もあり得る」ことを型で表している。
+「どの注文も押されていない」を`null`で表す、と決めているだけ。
+
+使う知識:<a href="/lessons/ch2-04-usestate" target="_blank" rel="noreferrer">2-4 useStateの基礎</a>、<a href="/lessons/ch2-06-conditional-rendering" target="_blank" rel="noreferrer">2-6 条件付きレンダリング</a>、<a href="/lessons/ch1-13-generics-reading" target="_blank" rel="noreferrer">1-13 ジェネリクスの読み方</a>
+
+### ステップB-5:一番下へ自動スクロールする
+
+キューの一番下に、目印になる空の`<div>`を置く。`useRef`でその`<div>`への参照を作り、`ref`に渡す。
+`useEffect`を使い、`orders.length`が変わったとき(新しい注文が増えたとき)だけ、
+その`<div>`に対して`scrollIntoView({ behavior: "smooth" })`を呼ぶ。
+
+考えどころは`useEffect`の依存配列。**「いつ動いてほしいか」を先に日本語で言えると、そこに何を書くかが決まる**。
+もう1つ、参照は最初のレンダーの時点ではまだ空なので、中身があるかどうかを確かめてから呼ぶ必要がある。
+
+一覧が短いとスクロールが起きず、動いたかどうか分からない。
+確かめるときは、注文を10件くらいに増やして、一覧の高さを固定しておくとよい。
+
+使う知識:<a href="/lessons/ch2-05-dom-useref" target="_blank" rel="noreferrer">2-5 DOMの基本とuseRef</a>、<a href="/lessons/ch2-08-useeffect" target="_blank" rel="noreferrer">2-8 useEffectの基礎</a>
 
 ### クリア条件(Part B)
 
-- `orders`が空の場合と1件以上の場合で、表示が正しく出し分けられていること
-- `.map()` + `key`によるリスト表示が正しく行われていること
-- `onComplete`コールバックが、正しい`id`で呼ばれること
-- `highlightedId`による強調表示の切り替えが動作すること
-- `useRef` + `useEffect` + `scrollIntoView`による自動スクロールが実装されていること
+- `.map()` + `key`によるリスト表示が正しく行われていること(B-1)
+- `orders`が空の場合と1件以上の場合で、表示が正しく出し分けられていること(B-2)
+- `onComplete`コールバックが、正しい`id`で呼ばれること(B-3)
+- `highlightedId`による強調表示の切り替えが動作すること(B-4)
+- `useRef` + `useEffect` + `scrollIntoView`による自動スクロールが実装されていること(B-5)
 
 ---
 
