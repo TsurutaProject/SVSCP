@@ -36,7 +36,9 @@ Next.js固有の部分でつまずいたときも、「ロジックは合って�
 
 ## 要件
 
-### 1. API Route:`/api/cakes/popularity`(4-7)
+各項目には「使う知識」として、対応するレッスンへのリンクを付けてある。**リンクは新しいタブで開く**ので、演習ページに書いたコードは消えない。手が止まったら、遠慮なくそのレッスンを開いて読み直してほしい。
+
+### 1. API Route:`/api/cakes/popularity`
 
 `src/app/api/cakes/popularity/route.ts`に、GETリクエストを受けて、以下のようなダミーデータをJSONで返す関数を作成する:
 
@@ -49,13 +51,17 @@ interface CakePopularity {
 
 （実際のデータベースは使わず、固定の配列を返すだけでよい。例:`[{ cakeKind: "shortcake", votes: 12 }, { cakeKind: "chocolate", votes: 8 }]`)
 
-### 2. ページルーティング:`/cakes/ranking`(4-6)
+使う知識:<a href="/lessons/ch4-07-api-server-actions" target="_blank" rel="noreferrer">4-7 API Routes / Server Actions</a>
 
-`src/app/cakes/ranking/page.tsx`に、上記のAPI Routeを`fetch`で呼び出し、結果を`.sort()`(3章で学んだ、降順ソート)で並び替えてから、`.map()` + `key`(2章)で一覧表示するページを作成する。`fetch`は`await`(4-3)を使って結果を待つこと。
+### 2. ページルーティング:`/cakes/ranking`
 
-`fetch`が失敗する可能性も考え、`try`/`catch`(4-4)で囲み、失敗した場合は「ランキングを取得できませんでした」という表示を出すこと。
+`src/app/cakes/ranking/page.tsx`に、上記のAPI Routeを`fetch`で呼び出し、結果を`.sort()`(3章で学んだ、降順ソート)で並び替えてから、`.map()` + `key`(2章)で一覧表示するページを作成する。`fetch`は`await`を使って結果を待つこと。
 
-### 3. Server Action:`voteForCake`(4-7)
+`fetch`が失敗する可能性も考え、`try`/`catch`で囲み、失敗した場合は「ランキングを取得できませんでした」という表示を出すこと。
+
+使う知識:<a href="/lessons/ch4-06-nextjs-routing" target="_blank" rel="noreferrer">4-6 Next.jsのルーティング基礎</a>、<a href="/lessons/ch4-03-promise-async-await" target="_blank" rel="noreferrer">4-3 Promiseとasync/await</a>、<a href="/lessons/ch4-04-try-catch" target="_blank" rel="noreferrer">4-4 try/catchとエラーハンドリング</a>、<a href="/lessons/ch3-05-find-some-sort" target="_blank" rel="noreferrer">3-5 .find() / .some() / .sort()</a>、<a href="/lessons/ch2-07-list-rendering-key" target="_blank" rel="noreferrer">2-7 リストレンダリングとkey</a>
+
+### 3. Server Action:`voteForCake`
 
 `"use server"`をつけた`voteForCake(cakeKind: string)`という関数を作成する。`actions.ts`の`updateExerciseStatus`と同じように、以下の早期リターンパターンを踏襲すること:
 
@@ -72,6 +78,8 @@ export async function voteForCake(cakeKind: string) {
   revalidatePath("/cakes/ranking");
 }
 ```
+
+使う知識:<a href="/lessons/ch4-07-api-server-actions" target="_blank" rel="noreferrer">4-7 API Routes / Server Actions</a>
 
 ## クリア条件
 

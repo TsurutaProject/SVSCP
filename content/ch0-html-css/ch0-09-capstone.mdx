@@ -41,7 +41,9 @@ ch0で学んだ内容(セレクタ、CSS変数、余白とサイズ、Flexbox、
 
 ## 要件
 
-### 1. CSS変数の定義(0-2)
+各項目には「使う知識」として、対応するレッスンへのリンクを付けてある。**リンクは新しいタブで開く**ので、演習ページに書いたコードは消えない。手が止まったら、遠慮なくそのレッスンを開いて読み直してほしい。
+
+### 1. CSS変数の定義
 
 `:root`に、以下のCSS変数を定義する:
 
@@ -52,6 +54,8 @@ ch0で学んだ内容(セレクタ、CSS変数、余白とサイズ、Flexbox、
   --accent-color: #ef6c00;
 }
 ```
+
+使う知識:<a href="/lessons/ch0-02-selectors-and-variables" target="_blank" rel="noreferrer">0-2 CSSセレクタの基本とCSS変数</a>
 
 ### 2. スコアボード全体のレイアウト(Flexbox)
 
@@ -64,6 +68,8 @@ ch0で学んだ内容(セレクタ、CSS変数、余白とサイズ、Flexbox、
 
 `.score-board`に、実際のCake-Gameと同じく`display: flex`と`gap: 10px`を指定する。
 
+使う知識:<a href="/lessons/ch0-05-flexbox" target="_blank" rel="noreferrer">0-5 Flexboxでレイアウトを組む</a>、<a href="/lessons/ch0-04-spacing-and-sizing" target="_blank" rel="noreferrer">0-4 余白とサイズ</a>
+
 ### 3. 各カードの見た目(余白とサイズ、見た目を整える)
 
 `.score-card`に、以下を指定する(実際のCake-Gameの値を参考にしてよい):
@@ -74,6 +80,8 @@ ch0で学んだ内容(セレクタ、CSS変数、余白とサイズ、Flexbox、
 - `background: var(--card-bg)`
 - `box-shadow: 0 12px 24px rgba(80, 48, 32, 0.08)`
 - `min-width: 96px`
+
+使う知識:<a href="/lessons/ch0-03-visual-styling" target="_blank" rel="noreferrer">0-3 見た目を整える</a>、<a href="/lessons/ch0-04-spacing-and-sizing" target="_blank" rel="noreferrer">0-4 余白とサイズ</a>
 
 ### 4. コンボバッジの重ね配置(position)
 
@@ -88,9 +96,13 @@ ch0で学んだ内容(セレクタ、CSS変数、余白とサイズ、Flexbox、
 
 `.combo-badge`は`position: absolute`で、カードの右下(`right: 9px; bottom: 9px;`)に配置する。
 
+使う知識:<a href="/lessons/ch0-07-position" target="_blank" rel="noreferrer">0-7 positionでの重ね配置</a>
+
 ### 5. 弾むアニメーション(@keyframes)
 
-`combo-pop`という名前の`@keyframes`を定義し(0-7で作ったものを再利用してよい)、`.combo-badge`に適用する。
+`combo-pop`という名前の`@keyframes`を定義し(0-8で作ったものを再利用してよい)、`.combo-badge`に適用する。
+
+使う知識:<a href="/lessons/ch0-08-keyframes" target="_blank" rel="noreferrer">0-8 @keyframesでアニメーション</a>
 
 ## クリア条件
 
