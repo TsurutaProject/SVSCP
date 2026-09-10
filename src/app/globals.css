@@ -8,25 +8,43 @@
  * ツールバーの見た目が壊れるため)。ボタン類の装飾は各CSS Module側で行う。
  */
 
+/*
+ * ライト/ダークの切り替えについて。
+ *
+ * 色は light-dark(ライトの値, ダークの値) で1か所に書く。どちらが使われるかは
+ * color-scheme で決まる。既定の `light dark` は「OSの設定に従う」という意味で、
+ * ユーザーがヘッダーのトグルで明示的に選んだときだけ、下の [data-theme] で上書きする。
+ *
+ * この形にしているのは、ダークの値を @media (prefers-color-scheme: dark) と
+ * [data-theme="dark"] の2か所に書き写さずに済むため。CSSは同じ宣言を
+ * @mediaの内と外で共有できないので、そうすると必ず二重管理になる。
+ *
+ * 選択結果は Cookie(svscp-theme)に入れて、サーバー側で <html data-theme="..."> を
+ * 付けて返す。localStorageだと最初の描画に間に合わず、一瞬だけ元のテーマが
+ * 見えてから切り替わる(ちらつく)ため。詳細は src/lib/theme.ts を参照。
+ */
+
 :root {
+  color-scheme: light dark;
+
   /* 面と文字 */
-  --color-bg: #f5f7fa;
-  --color-surface: #ffffff;
-  --color-surface-2: #f0f3f7;
-  --color-fg: #1a1d21;
-  --color-fg-muted: #5c6672;
-  --color-border: #e0e5ec;
+  --color-bg: light-dark(#f5f7fa, #0d1117);
+  --color-surface: light-dark(#ffffff, #161b22);
+  --color-surface-2: light-dark(#f0f3f7, #1c222b);
+  --color-fg: light-dark(#1a1d21, #e6edf3);
+  --color-fg-muted: light-dark(#5c6672, #97a3b1);
+  --color-border: light-dark(#e0e5ec, #2b323c);
 
   /* アクセント(リンク・主要操作) */
-  --color-accent: #2563eb;
-  --color-accent-fg: #ffffff;
-  --color-accent-soft: #eef4ff;
+  --color-accent: light-dark(#2563eb, #5b9bff);
+  --color-accent-fg: light-dark(#ffffff, #0d1117);
+  --color-accent-soft: light-dark(#eef4ff, #16233a);
 
   /* ステータス(未着手/進行中/クリア済み) */
-  --color-success: #157f3d;
-  --color-success-soft: #e7f5ec;
-  --color-warning: #a65a06;
-  --color-warning-soft: #fdf2e3;
+  --color-success: light-dark(#157f3d, #56d98a);
+  --color-success-soft: light-dark(#e7f5ec, #12281b);
+  --color-warning: light-dark(#a65a06, #f0b73f);
+  --color-warning-soft: light-dark(#fdf2e3, #2b2114);
 
   /* 余白スケール */
   --space-1: 0.25rem;
@@ -42,9 +60,12 @@
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
 
-  /* 影 */
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.06);
-  --shadow-md: 0 2px 4px rgba(16, 24, 40, 0.05), 0 6px 16px rgba(16, 24, 40, 0.08);
+  /* 影。light-dark() は色にしか使えないので、色の部分だけを切り替える
+     (ダークでは1枚目をほぼ効かせず、2枚目を濃くして深さを出す) */
+  --shadow-sm: 0 1px 2px light-dark(rgba(16, 24, 40, 0.05), rgba(0, 0, 0, 0.4)),
+    0 1px 3px light-dark(rgba(16, 24, 40, 0.06), transparent);
+  --shadow-md: 0 2px 4px light-dark(rgba(16, 24, 40, 0.05), rgba(0, 0, 0, 0.35)),
+    0 6px 16px light-dark(rgba(16, 24, 40, 0.08), rgba(0, 0, 0, 0.45));
 
   /* レイアウト幅 */
   --width-content: 76rem;
@@ -55,27 +76,15 @@
   --foreground: var(--color-fg);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #0d1117;
-    --color-surface: #161b22;
-    --color-surface-2: #1c222b;
-    --color-fg: #e6edf3;
-    --color-fg-muted: #97a3b1;
-    --color-border: #2b323c;
+/* ユーザーがヘッダーのトグルで明示的に選んだとき(Cookieがあるとき)だけ、
+   OSの設定より優先する。「OSに従う」を選ぶと data-theme が外れ、上の
+   color-scheme: light dark に戻る。 */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
 
-    --color-accent: #5b9bff;
-    --color-accent-fg: #0d1117;
-    --color-accent-soft: #16233a;
-
-    --color-success: #56d98a;
-    --color-success-soft: #12281b;
-    --color-warning: #f0b73f;
-    --color-warning-soft: #2b2114;
-
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.35), 0 6px 16px rgba(0, 0, 0, 0.45);
-  }
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 html {
@@ -128,10 +137,4 @@ td {
   border: 1px solid var(--color-border);
   padding: var(--space-2) var(--space-4);
   text-align: left;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
 }

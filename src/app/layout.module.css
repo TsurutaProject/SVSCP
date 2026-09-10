@@ -1,0 +1,11 @@
+/* 全ページ共通の細い帯。中身は配色の切り替えだけ。
+   ページごとに本文の幅が違う(進捗ボードは広く、教材ページは読み物幅)ので、
+   本文の幅に合わせようとすると、ページによって位置がずれる。
+   そこで幅を合わせにいかず、画面の右端に固定した「ページの外側の帯」にしている。 */
+.topBar {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--space-2) var(--space-5);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
