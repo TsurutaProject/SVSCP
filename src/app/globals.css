@@ -87,6 +87,68 @@
   color-scheme: dark;
 }
 
+/*
+ * Sandpack(コードエディタ)の配色を、アプリのテーマに追従させる。
+ *
+ * Sandpackは自前のテーマをCSS変数(--sp-*)としてラッパーに載せているだけなので、
+ * その変数を上書きすれば配色を差し替えられる。**JavaScriptは一切使わない**のが要点。
+ *
+ * Sandpackには theme="auto" もあるが、これは使ってはいけない。中身は
+ * モジュール読み込み時の `window.matchMedia(...)` で、サーバーには window が
+ * 無いため必ずライトと判定される。演習ページのSandpackはサーバー側でも
+ * 描画されるので、サーバー=ライト / クライアント=ダークとなり、
+ * ハイドレーションエラーになる(実際に過去に発生させた)。
+ * 下のやり方はCSSだけで完結するので、その問題が原理的に起きない。
+ *
+ * 値は Sandpack 公式の defaultLight / defaultDark をそのまま使っている
+ * (node_modules/@codesandbox/sandpack-react/dist/index.js)。
+ *
+ * ラッパーにも color-scheme を明示しているのがポイント。Sandpackは
+ * ラッパーに color-scheme: light を固定で付けるので、これが無いと
+ * light-dark() が常にライト側を返してしまう。
+ * `inherit` では駄目で、:root と同じ3通りを書き下す必要がある。Next.jsの
+ * CSS変換(Lightning CSS)が light-dark() を古いブラウザ向けに書き換える際、
+ * color-scheme の値から補助変数を作るしくみのため、`inherit` だと
+ * 変換結果が color-scheme: normal になって効かなくなる。
+ *
+ * :root を前に付けているのは、Sandpack側の定義(.light)に詳細度で勝つため。
+ */
+:root .sp-wrapper {
+  color-scheme: light dark;
+
+  --sp-colors-surface1: light-dark(#ffffff, #151515);
+  --sp-colors-surface2: light-dark(#efefef, #252525);
+  --sp-colors-surface3: light-dark(#f3f3f3, #2f2f2f);
+  --sp-colors-disabled: light-dark(#c5c5c5, #4d4d4d);
+  --sp-colors-base: light-dark(#323232, #808080);
+  --sp-colors-clickable: light-dark(#808080, #999999);
+  --sp-colors-hover: light-dark(#4d4d4d, #c5c5c5);
+  --sp-colors-accent: light-dark(#3973e0, #e5e5e5);
+  --sp-colors-error: light-dark(#ea3323, #ffb4a6);
+  --sp-colors-errorSurface: light-dark(#fcf1f0, #690000);
+  --sp-colors-warning: light-dark(#6a4516, #e7c400);
+  --sp-colors-warningSurface: light-dark(#fef2c0, #3a3000);
+
+  --sp-syntax-color-plain: light-dark(#151515, #ffffff);
+  --sp-syntax-color-comment: light-dark(#999999, #757575);
+  --sp-syntax-color-keyword: light-dark(#7c5ae3, #77b7d7);
+  --sp-syntax-color-tag: light-dark(#0971f1, #dfab5c);
+  --sp-syntax-color-punctuation: light-dark(#3b3b3b, #ffffff);
+  --sp-syntax-color-definition: light-dark(#85a600, #86d9ca);
+  --sp-syntax-color-property: light-dark(#3b3b3b, #77b7d7);
+  --sp-syntax-color-static: light-dark(#3b3b3b, #c64640);
+  --sp-syntax-color-string: light-dark(#2e6bd0, #977cdc);
+}
+
+/* 手で選んだときは、:root と同じようにエディタ側も固定する */
+:root[data-theme="light"] .sp-wrapper {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] .sp-wrapper {
+  color-scheme: dark;
+}
+
 html {
   height: 100%;
 }
